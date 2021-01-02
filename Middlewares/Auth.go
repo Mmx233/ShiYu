@@ -2,48 +2,52 @@ package Middlewares
 
 import (
 	"Mmx/Modules"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type auth struct {}
 var Auth auth
 
-func (* auth)Main(c *gin.Context){//鉴权中间件
-	//防盗链
-	if len(c.GetHeader("Referer"))<29||c.GetHeader("Referer")[8:28]!="hackweek.multmax.top"{
-		Modules.CallBack.Error(c,302)
-		return
-	}
+//JWT
+var jwtSEC =[]byte("我叼，密钥应该复杂一点，对吧对吧")
+type jwtDATA struct {
+	Role string
+	Username string
+	Ip string
+	jwt.StandardClaims
+}
 
+func (* auth)Main(c *gin.Context){//鉴权中间件
 	sToken,err:=c.Cookie("token")
-	if err!=nil||sToken==""{
-		if c.FullPath()==`/api/login`||c.FullPath()==`/api/register`{
+	if err!=nil||sToken==""{//未登录
+		if c.FullPath()==`/api/login`||c.FullPath()==`/api/register`{//特殊入口免鉴权
 			c.Next()
 			return
 		}
-		c.AsciiJSON(401,NewErrorCall("未登录",107))
-		c.Abort()
+		Modules.CallBack.Error(c,107)
 		return
 	}
+
 	//解析jwt
 	jToken, err := jwt.ParseWithClaims(sToken, &jwtDATA{}, func(token *jwt.Token) (interface{},error) {
 		return jwtSEC, nil
 	})
 	claims, ok := jToken.Claims.(*jwtDATA)
 	if err!=nil || !ok{
-		c.AsciiJSON(500,NewErrorCall("鉴权token解析失败",106))
-		c.Abort()
+		Modules.CallBack.Error(c,106)
 		return
 	}
 	if !jToken.Valid || claims.Ip!=c.ClientIP(){
-		removeCookie(c,"token")
-		c.AsciiJSON(401,NewErrorCall("登录过期",107))
-		c.Abort()
+		Modules.Cookie.RemoveCookie(c,"token")
+		Modules.CallBack.Error(c,105)
 		return
 	}
+
+	//传递username
 	c.Set("username",claims.Username)
-	if claims.Role!="admin" {
+
+	if claims.Role!="admin" {//user权限
 		switch{
 		case "/api/user/" + claims.Username == c.Request.RequestURI:
 			fallthrough
@@ -57,8 +61,7 @@ func (* auth)Main(c *gin.Context){//鉴权中间件
 			c.Next()
 			return
 		}
-		c.AsciiJSON(403, NewErrorCall("没有权限", 108))
-		c.Abort()
+		Modules.CallBack.Error(c,108)
 		return
 	}
 	c.Next()

@@ -31,6 +31,11 @@ func (* secure)InitIpLogger(){
 }
 
 func (* secure)Main(c *gin.Context){
+	//防盗链
+	if len(c.GetHeader("Referer"))<29||c.GetHeader("Referer")[8:28]!="hackweek.multmax.top"{
+		Modules.CallBack.Error(c,302)
+		return
+	}
 	//防扫描
 	ipChan <-c.ClientIP()
 	if ipLogger[c.ClientIP()]>60 || ipLogger[c.ClientIP()]<0 { //一分钟内最多60次访问，限制访问频次
