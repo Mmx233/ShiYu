@@ -44,7 +44,7 @@ func (* auth)Main(c *gin.Context){//鉴权中间件
 		return
 	}
 
-	//传递username
+	//传递登录者username
 	c.Set("username",claims.Username)
 
 	if claims.Role!="admin" {//user权限
