@@ -1,7 +1,11 @@
 package Router
 
-import "github.com/gin-gonic/gin"
+import (
+	"Mmx/Middlewares"
+	"github.com/gin-gonic/gin"
+)
 
 func routerUser(G *gin.RouterGroup){
+	G.Use(Middlewares.Check.UserName)
 
 }

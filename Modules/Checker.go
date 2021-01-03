@@ -1,6 +1,7 @@
 package Modules
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"unicode/utf8"
@@ -29,6 +30,14 @@ func (*checker)Name(c *gin.Context,content string)bool{//检查昵称是否合�
 func (*checker)Password(c *gin.Context,content string)bool{//检查密码是否合法
 	if utf8.RuneCountInString(content)<9||utf8.RuneCountInString(content)>50{
 		CallBack.Error(c,110)
+		return false
+	}
+	return true
+}
+
+func (*checker)Role(c *gin.Context,role string)bool{
+	if role!="admin"&&role!="user"{
+		CallBack.ErrorWithErr(c,102,errors.New("role参数不合法"))
 		return false
 	}
 	return true

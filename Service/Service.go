@@ -103,8 +103,8 @@ func GetRow(c *gin.Context,table string,data interface{},where map[string]interf
 			points=append(points, f.Field(i).Addr())
 		}
 		g:=reflect.TypeOf(data).Elem()
-		for i:=0;i<g.NumField();i++{//获取对应字段，对应数据库中键名
-			keys=append(keys,g.Field(i).Name)
+		for i:=0;i<g.NumField();i++{//获取对应字段名，对应数据库中键名
+			keys=append(keys,strings.ToLower(g.Field(i).Name))
 		}
 	}
 	for k,v :=range where{
