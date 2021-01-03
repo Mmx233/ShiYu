@@ -1,7 +1,7 @@
 package Service
 
 type check struct {}
-var Check check
+var Checker check
 
 func (*check)AccountExist(role string,username string)bool{
 	var tempB bool

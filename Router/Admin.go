@@ -11,5 +11,6 @@ func routerAdmin(G *gin.RouterGroup){
 	G.POST("/:username",Controllers.Admin.NewAccount)//新账户
 	G.GET("/:username",Controllers.Admin.Information)//获取信息
 	G.PUT("/:username",Controllers.Admin.Renew)//修改信息
-	G.PATCH("/:username",Controllers.Admin.Change)//修改指定信息0
+	G.PATCH("/:username",Controllers.Admin.Change)//修改指定信息
+	G.DELETE("/:username",Controllers.Admin.Delete)//删除账号
 }
