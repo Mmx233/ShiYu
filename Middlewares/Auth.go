@@ -2,21 +2,11 @@ package Middlewares
 
 import (
 	"Mmx/Modules"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
 type auth struct {}
 var Auth auth
-
-//JWT
-var jwtSEC =[]byte("我叼，密钥应该复杂一点，对吧对吧")
-type jwtDATA struct {
-	Role string
-	Username string
-	Ip string
-	jwt.StandardClaims
-}
 
 func (* auth)Main(c *gin.Context){//鉴权中间件
 	sToken,err:=c.Cookie("token")
@@ -29,25 +19,20 @@ func (* auth)Main(c *gin.Context){//鉴权中间件
 		return
 	}
 
-	//解析jwt
-	jToken, err := jwt.ParseWithClaims(sToken, &jwtDATA{}, func(token *jwt.Token) (interface{},error) {
-		return jwtSEC, nil
-	})
-	claims, ok := jToken.Claims.(*jwtDATA)
-	if err!=nil || !ok{
-		Modules.CallBack.Error(c,106)
-		return
-	}
-	if !jToken.Valid || claims.Ip!=c.ClientIP(){
-		Modules.Cookie.RemoveCookie(c,"token")
-		Modules.CallBack.Error(c,105)
-		return
+	//jwt
+	var claims *Modules.JwtDATA
+	{
+		var err error
+		if claims,err=Modules.Jwt.Decode(c,sToken);err!=nil{
+			Modules.Cookie.RemoveCookie(c,"token")
+			return
+		}
 	}
 
 	//传递登录者username
 	c.Set("username",claims.Username)
 
-	if claims.Role!="admin" {//user权限
+	/*if claims.Role!="admin" {//user权限 DEMO
 		switch{
 		case "/api/user/" + claims.Username == c.Request.RequestURI:
 			fallthrough
@@ -63,6 +48,6 @@ func (* auth)Main(c *gin.Context){//鉴权中间件
 		}
 		Modules.CallBack.Error(c,108)
 		return
-	}
+	}*/
 	c.Next()
 }

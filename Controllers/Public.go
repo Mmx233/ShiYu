@@ -33,7 +33,12 @@ func (*public)Login(c *gin.Context){
 		return
 	}
 	//登陆成功
-
+	if token,err:=Modules.Jwt.Encode(c,form.Role,form.UserName);err!=nil{
+		return
+	}else{
+		Modules.Cookie.SetCookie(c,"token",token)
+	}
+	Modules.CallBack.Default(c)
 }
 
 func (*public)Register(c *gin.Context){
