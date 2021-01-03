@@ -3,6 +3,7 @@ package Modules
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"math/rand"
 	"time"
 	"unicode/utf8"
@@ -31,4 +32,12 @@ func (*tool)MakeSalt(PassWord string)string{
 		salt+=randRune()
 	}
 	return salt
+}
+
+func (*tool)BindForm(c *gin.Context,f interface{})bool{
+	if err:=c.ShouldBind(f);err!=nil{
+		CallBack.ErrorWithErr(c,102,err)
+		return false
+	}
+	return true
 }

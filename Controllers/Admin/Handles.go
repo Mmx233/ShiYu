@@ -10,28 +10,28 @@ type admin struct {}
 var Admin admin
 
 func (*admin)NewAccount(c *gin.Context){
+	username:=c.Param("username")
 	type Form struct {
-		PassWord string `json:"password" form:"password" binding:"required,len=32"`
+		PassWord string `json:"password" form:"password" binding:"required"`
 		Name string `json:"name" form:"name" binding:"required"`
 	}
 	var form Form
-	if err:=c.ShouldBind(&form);err!=nil{
-		Modules.CallBack.ErrorWithErr(c,102,err)
+	if !Modules.Tool.BindForm(c, &form){
 		return
 	}
-	if !Modules.Checker.Name(c,form.Name) {//检查昵称
+	if !Modules.Checker.Name(c,form.Name) {
 		return
 	}
-	if !Modules.Checker.Password(c,form.PassWord){//检查密码
+	if !Modules.Checker.Password(c,form.PassWord){
 		return
 	}
-	if Service.Check.AccountExist("admin",c.Param("username")){//用户名是否已被占用
+	if Service.Check.AccountExist("admin",username){
 		Modules.CallBack.Error(c,109)
 		return
 	}
-	salt:=Modules.Tool.MakeSalt(form.PassWord)//生产盐
+	salt:=Modules.Tool.MakeSalt(form.PassWord)
 	if _,err:=Service.Insert(c,"admin",map[string]interface{}{
-		"username":c.Param("username"),
+		"username":username,
 		"password":Modules.Tool.EncodePassWord(form.PassWord,salt),
 		"name":form.Name,
 		"salt":salt,
@@ -39,4 +39,56 @@ func (*admin)NewAccount(c *gin.Context){
 		return
 	}
 	Modules.CallBack.Default(c)
+}
+
+func (*admin)Information(c *gin.Context){
+	username:=c.Param("username")
+	type adminInfo struct {//信息结构体
+		Name string `json:"name"`
+	}
+	var admin adminInfo
+	if Service.GetRow(c,"admin",&admin,map[string]interface{}{
+		"username":username,
+	})!=nil{
+		return
+	}
+	Modules.CallBack.Success(c,admin)
+}
+
+func (*admin)Renew(c * gin.Context){
+	username:=c.Param("username")
+	type renewForm struct {
+		UserName string `json:"username" form:"username" binding:"required,max=19"`
+		PassWord string `json:"password" form:"password" binding:"required"`
+		Name string `json:"name" form:"name" binding:"required"`
+	}
+	var form renewForm
+	if !Modules.Tool.BindForm(c,&form){
+		return
+	}
+	if !Modules.Checker.Password(c,form.PassWord){
+		return
+	}
+	if !Modules.Checker.Name(c,form.Name){
+		return
+	}
+	if !Service.Check.AccountExist("admin",form.UserName){
+		Modules.CallBack.Error(c,111)
+	}
+	salt:=Modules.Tool.MakeSalt(form.PassWord)
+	if _,err:=Service.Update(c,"admin",map[string]interface{}{
+		"username":form.UserName,
+		"password":Modules.Tool.EncodePassWord(form.PassWord,salt),
+		"name":form.Name,
+		"salt":salt,
+	},map[string]interface{}{
+		"username":username,
+	});err!=nil{
+		return
+	}
+	Modules.CallBack.Default(c)
+}
+
+func (*admin)Change(c *gin.Context){
+
 }
