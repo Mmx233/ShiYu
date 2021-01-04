@@ -11,9 +11,9 @@ var Public public
 
 func (*public)Login(c *gin.Context){
 	type loginForm struct {
-		Role string `json:"role" form:"role" binding:"required"`
-		UserName string `json:"username" form:"username" binding:"required,max=19"`
-		PassWord string `json:"password" form:"password" binding:"required"`
+		Role string `form:"role" binding:"required"`
+		UserName string `form:"username" binding:"required,max=19"`
+		PassWord string `form:"password" binding:"required"`
 	}
 	var form loginForm
 	if !Modules.Tool.BindForm(c,&form){
@@ -40,9 +40,9 @@ func (*public)Login(c *gin.Context){
 
 func (*public)Register(c *gin.Context){
 	type registerForm struct {
-		UserName string `json:"username" form:"username" binding:"required,max=19"`
-		PassWord string `json:"password" form:"password" binding:"required"`
-		Name string `json:"name" form:"name" binding:"required"`
+		UserName string `form:"username" binding:"required,max=19"`
+		PassWord string `form:"password" binding:"required"`
+		Name string `form:"name" binding:"required"`
 	}
 	var form registerForm
 	if !Modules.Tool.BindForm(c,&form){
@@ -51,5 +51,26 @@ func (*public)Register(c *gin.Context){
 	if !Modules.Checker.Form(c,&form){
 		return
 	}
-
+	if Service.Checker.AccountExist("user",form.UserName){
+		Modules.CallBack.Error(c,109)
+		return
+	}
+	if Service.Checker.NameExist("user",form.Name){
+		Modules.CallBack.Error(c,113)
+		return
+	}
+	salt:=Modules.Tool.MakeSalt(form.PassWord)
+	if _,err:=Service.Insert(c,"user", map[string]interface{}{
+		"username":form.UserName,
+		"password":Modules.Tool.EncodePassWord(form.PassWord,salt),
+		"salt":salt,
+		"head_img_id":0,
+		"big_player":0,
+		"test_count":0,
+		"like_count":0,
+		"fan_count":0,
+	});err!=nil{
+		return
+	}
+	Modules.CallBack.Default(c)
 }

@@ -14,21 +14,22 @@ var Admin admin
 func (*admin)NewAccount(c *gin.Context){
 	username:=c.Param("username")
 	type Form struct {
-		PassWord string `json:"password" form:"password" binding:"required"`
-		Name string `json:"name" form:"name" binding:"required"`
+		PassWord string `form:"password" binding:"required"`
+		Name string `form:"name" binding:"required"`
 	}
 	var form Form
 	if !Modules.Tool.BindForm(c, &form){
 		return
 	}
-	if !Modules.Checker.Name(c,form.Name) {
-		return
-	}
-	if !Modules.Checker.Password(c,form.PassWord){
+	if !Modules.Checker.Form(c,&form){
 		return
 	}
 	if Service.Checker.AccountExist("admin",username){
 		Modules.CallBack.Error(c,109)
+		return
+	}
+	if Service.Checker.NameExist("admin",form.Name){
+		Modules.CallBack.Error(c,113)
 		return
 	}
 	salt:=Modules.Tool.MakeSalt(form.PassWord)
@@ -60,9 +61,9 @@ func (*admin)Information(c *gin.Context){
 func (*admin)Renew(c * gin.Context){
 	username:=c.Param("username")
 	type renewForm struct {
-		UserName string `json:"username" form:"username" binding:"required,max=19"`
-		PassWord string `json:"password" form:"password" binding:"required"`
-		Name string `json:"name" form:"name" binding:"required"`
+		UserName string `form:"username" binding:"required,max=19"`
+		PassWord string `form:"password" binding:"required"`
+		Name string `form:"name" binding:"required"`
 	}
 	var form renewForm
 	if !Modules.Tool.BindForm(c,&form){
@@ -73,6 +74,9 @@ func (*admin)Renew(c * gin.Context){
 	}
 	if username!=form.UserName&&!Service.Checker.AccountExist("admin",form.UserName){
 		Modules.CallBack.Error(c,111)
+	}
+	if !Service.Checker.Name(c,"admin",username,form.Name){
+		return
 	}
 	salt:=Modules.Tool.MakeSalt(form.PassWord)
 	if _,err:=Service.Update(c,"admin",map[string]interface{}{
@@ -91,8 +95,8 @@ func (*admin)Renew(c * gin.Context){
 func (*admin)Change(c *gin.Context){
 	username:=c.Param("username")
 	type changeForm struct {
-		Target string `json:"target" form:"target" binding:"required"`
-		Value string `json:"value" form:"value"  binding:"required"`
+		Target string `form:"target" binding:"required"`
+		Value string `form:"value"  binding:"required"`
 	}
 	var form changeForm
 	if !Modules.Tool.BindForm(c,&form){
@@ -130,6 +134,9 @@ func (*admin)Change(c *gin.Context){
 		}
 	case "name":
 		if !Modules.Checker.Name(c,form.Value){
+			return
+		}
+		if !Service.Checker.Name(c,"admin",username,form.Value){
 			return
 		}
 		if _,err:=Service.Update(c,"admin", map[string]interface{}{
