@@ -19,10 +19,7 @@ func (*public)Login(c *gin.Context){
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
-	if !Modules.Checker.Role(c,form.Role){
-		return
-	}
-	if !Modules.Checker.UserName(c,form.UserName){
+	if !Modules.Checker.Form(c,&form){
 		return
 	}
 	if !Service.Checker.AccountExist(form.Role,form.UserName){
@@ -42,5 +39,17 @@ func (*public)Login(c *gin.Context){
 }
 
 func (*public)Register(c *gin.Context){
+	type registerForm struct {
+		UserName string `json:"username" form:"username" binding:"required,max=19"`
+		PassWord string `json:"password" form:"password" binding:"required"`
+		Name string `json:"name" form:"name" binding:"required"`
+	}
+	var form registerForm
+	if !Modules.Tool.BindForm(c,&form){
+		return
+	}
+	if !Modules.Checker.Form(c,&form){
+		return
+	}
 
 }

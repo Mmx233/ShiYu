@@ -56,3 +56,4 @@ func (j *j)Encode(c *gin.Context,role string,username string)(string,error){
 	}
 	return token,nil
 }
+

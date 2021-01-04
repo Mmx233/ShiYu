@@ -68,13 +68,7 @@ func (*admin)Renew(c * gin.Context){
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
-	if !Modules.Checker.Password(c,form.PassWord){
-		return
-	}
-	if !Modules.Checker.Name(c,form.Name){
-		return
-	}
-	if !Modules.Checker.UserName(c,form.UserName){
+	if !Modules.Checker.Form(c,&form){
 		return
 	}
 	if username!=form.UserName&&!Service.Checker.AccountExist("admin",form.UserName){

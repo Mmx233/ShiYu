@@ -3,7 +3,6 @@ package Service
 import (
 	"Mmx/Modules"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -94,11 +93,6 @@ func GetRow(c *gin.Context,table string,data interface{},where map[string]interf
 	var values []interface{}
 	{//获取data结构体信息
 		f:=reflect.ValueOf(data).Elem()
-		if f.Kind()!=reflect.Struct{
-			err:=errors.New("数据库接收变量非结构体")
-			er(c,err)
-			return err
-		}
 		for i:=0;i<f.NumField();i++{//取址
 			points=append(points, f.Field(i).Addr())
 		}
