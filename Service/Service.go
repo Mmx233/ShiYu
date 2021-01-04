@@ -3,6 +3,8 @@ package Service
 import (
 	"Mmx/Modules"
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -91,16 +93,33 @@ func GetRow(c *gin.Context,table string,data interface{},where map[string]interf
 	var keys []string
 	var wh []string
 	var values []interface{}
-	{//获取data结构体信息
-		f:=reflect.ValueOf(data).Elem()
-		for i:=0;i<f.NumField();i++{//取址
-			points=append(points, f.Field(i).Addr())
+
+	//临时数组json 原字符串存储
+	var temp =make(map[int]*string)
+
+	//获取data结构体信息
+	f:=reflect.ValueOf(data).Elem()
+	for i:=0;i<f.NumField();i++{//取址
+		if f.Field(i).Kind()==reflect.Slice{
+			//对应数据库的数组存储
+			//目前数据库所有数组都为[]uint
+			var s string
+			points=append(points,&s)
+			temp[i]=&s
+			continue
 		}
-		g:=reflect.TypeOf(data).Elem()
-		for i:=0;i<g.NumField();i++{//获取对应字段名，对应数据库中键名
-			keys=append(keys,strings.ToLower(g.Field(i).Name))
+		points=append(points, f.Field(i).Addr())
+	}
+	g:=reflect.TypeOf(data).Elem()
+	for i:=0;i<g.NumField();i++{//获取对应字段名，对应数据库中键名
+		if g.Field(i).Tag.Get("json")!=""{
+			keys=append(keys,strings.ToLower(g.Field(i).Tag.Get("json")))//有json tag则使用
+		}else {
+			keys = append(keys, strings.ToLower(g.Field(i).Name))
 		}
 	}
+
+	//构造查询语句
 	for k,v :=range where{
 		wh=append(wh,k+"=?")
 		values=append(values,v)
@@ -115,5 +134,19 @@ func GetRow(c *gin.Context,table string,data interface{},where map[string]interf
 		er(c,err)
 		return err
 	}
+
+	//还原数组
+	for k,v:=range temp{
+		var tempS []uint64
+		if json.Unmarshal([]byte(*v),&tempS)!=nil{
+			err:=errors.New("未知错误-解码失败")
+			Modules.CallBack.ErrorWithErr(c,102,err)
+			return err
+		}
+		for i,vv :=range tempS{
+			f.Field(k).Index(i).SetUint(vv) //默认全是[]uint
+		}
+	}
+
 	return nil
 }
