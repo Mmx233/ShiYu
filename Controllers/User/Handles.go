@@ -4,6 +4,8 @@ import (
 	"Mmx/Modules"
 	"Mmx/Service"
 	"github.com/gin-gonic/gin"
+	"strconv"
+	"strings"
 )
 
 type user struct {}
@@ -17,7 +19,7 @@ func (*user)Information(c *gin.Context){
 	}
 	type temp struct {
 		Name string `json:"name"`
-		HeadImgId uint `json:"head_img_id"`
+		HeadImg string `json:"head_img"`
 		BigPlayer bool `json:"big_player"`
 		TestCount uint `json:"test_count"`
 		LikeCount uint16 `json:"like_count"`
@@ -31,5 +33,118 @@ func (*user)Information(c *gin.Context){
 	})!=nil{
 		return
 	}
+	if t.HeadImg=="y"{
+		t.HeadImg="未完成哒，这里大概部署了才能写" //DEMO
+	}else{
+		t.HeadImg="默认头像图片URL"
+	}
 	Modules.CallBack.Success(c,t)
+}
+
+func (*user)Renew(c *gin.Context){
+	username:=c.Param("username")
+	type renewForm struct {
+		UserName string `form:"username" binding:"required,max=19"`
+		PassWord string `form:"password" binding:"required"`
+		Name string `form:"name" binding:"required"`
+		BigPlayer bool `form:"big_player"`
+	}
+	var form renewForm
+	if !Modules.Tool.BindForm(c,&form){
+		return
+	}
+	if !Modules.Checker.Form(c,&form){
+		return
+	}
+	if username!=form.UserName&&Service.Checker.AccountExist("user",form.UserName){
+		Modules.CallBack.Error(c,109)
+		return
+	}
+	if !Service.Checker.Name(c,"user",username,form.Name){
+		return
+	}
+	salt:=Modules.Tool.MakeSalt(form.PassWord)
+	var insertMap = map[string]interface{}{
+		"username":form.UserName,
+		"password":Modules.Tool.EncodePassWord(form.PassWord,salt),
+		"salt":salt,
+		"name":form.Name,
+	}
+	if a,b:=c.Get("role");b!=false&&a.(string)=="admin"{//admin可以修改是否为大玩家
+		insertMap["big_player"]=form.BigPlayer
+	}
+	Modules.CallBack.Default(c)
+}
+
+func (*user)Change(c *gin.Context){
+	username:=c.Param("username")
+	type changeForm struct {
+		Target string `form:"target" binding:"required"`
+		Value string `form:"value"  binding:"required"`
+	}
+	var form changeForm
+	if !Modules.Tool.BindForm(c,&form){
+		return
+	}
+	form.Target=strings.ToLower(form.Target)
+	switch form.Target {
+	case "username":
+		if !Modules.Checker.UserName(c,form.Value){
+			return
+		}
+		if Service.Checker.AccountExist("user",form.Value){
+			Modules.CallBack.Error(c,109)
+			return
+		}
+		if _,err:=Service.Update(c,"user", map[string]interface{}{
+			"username":form.Value,
+		}, map[string]interface{}{
+			"username":username,
+		});err!=nil{
+			return
+		}
+	case "password":
+		if !Modules.Checker.Password(c,form.Value){
+			return
+		}
+		salt:=Modules.Tool.MakeSalt(form.Value)
+		if _,err:=Service.Update(c,"user", map[string]interface{}{
+			"password":Modules.Tool.EncodePassWord(form.Value,salt),
+			"salt":salt,
+		}, map[string]interface{}{
+			"username":username,
+		});err!=nil{
+			return
+		}
+	case "name":
+		if !Modules.Checker.Name(c,form.Value){
+			return
+		}
+		if !Service.Checker.Name(c,"user",username,form.Value){
+			return
+		}
+		if _,err:=Service.Update(c,"user", map[string]interface{}{
+			"name":form.Value,
+		}, map[string]interface{}{
+			"username":username,
+		});err!=nil{
+			return
+		}
+	case "big_player":
+		if a,b:=c.Get("role");b!=false&&a.(string)=="admin"{
+			if _,err:=Service.Update(c,"user", map[string]interface{}{
+				"big_player":strconv.ParseBool(form.Value),
+			}, map[string]interface{}{
+				"username":username,
+			});err!=nil{
+				return
+			}
+			break
+		}
+		fallthrough
+	default:
+		Modules.CallBack.Error(c,114)
+		return
+	}
+	Modules.CallBack.Default(c)
 }

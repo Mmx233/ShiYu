@@ -3,7 +3,6 @@ package Controllers
 import (
 	"Mmx/Modules"
 	"Mmx/Service"
-	"errors"
 	"github.com/gin-gonic/gin"
 	"strings"
 )
@@ -147,7 +146,7 @@ func (*admin)Change(c *gin.Context){
 			return
 		}
 	default:
-		Modules.CallBack.ErrorWithErr(c,102,errors.New("目标属性不存在"))
+		Modules.CallBack.Error(c,114)
 		return
 	}
 	Modules.CallBack.Default(c)

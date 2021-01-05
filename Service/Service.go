@@ -103,6 +103,7 @@ func GetRow(c *gin.Context,table string,data interface{},where map[string]interf
 		if f.Field(i).Kind()==reflect.Slice{
 			//对应数据库的数组存储
 			//目前数据库所有数组都为[]uint
+			//对数组的还原在本函数底部
 			var s string
 			points=append(points,&s)
 			temp[i]=&s

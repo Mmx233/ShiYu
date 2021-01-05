@@ -3,6 +3,7 @@ package Middlewares
 import (
 	"Mmx/Modules"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 type auth struct {}
@@ -29,25 +30,23 @@ func (* auth)Main(c *gin.Context){//鉴权中间件
 		}
 	}
 
-	//传递登录者username
+	//传递登录者username和role
 	c.Set("username",claims.Username)
+	c.Set("role",claims.Role)
 
-	/*if claims.Role!="admin" {//user权限 DEMO
+	//user权限
+	if claims.Role!="admin" {
 		switch{
 		case "/api/user/" + claims.Username == c.Request.RequestURI:
 			fallthrough
 		case c.Request.Method=="GET"&&c.Request.RequestURI[0:9]=="/api/biz/"://允许biz GET
 			fallthrough
-		case c.FullPath()=="/api/register"||c.FullPath()=="/api/login"://登录注册页
-			fallthrough
-		case c.FullPath()=="/api/biz/menu/"+claims.Username://收藏
-			fallthrough
-		case c.FullPath()=="/api/upload/3"://头像上传
+		case strings.HasPrefix(c.FullPath(),"/api/v3/")://公共api
 			c.Next()
 			return
 		}
 		Modules.CallBack.Error(c,108)
 		return
-	}*/
+	}
 	c.Next()
 }
