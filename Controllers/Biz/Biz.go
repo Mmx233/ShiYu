@@ -2,6 +2,7 @@ package Controllers
 
 import (
 	"Mmx/Modules"
+	"Mmx/Service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,7 +13,7 @@ var Biz biz
 type bizData struct {
 	Id uint `json:"id"`
 	Name string `json:"name"`
-	PicUrl []uint `json:"pic_url"`
+	PicUrl []string `json:"pic_url"`
 	Grade float32 `json:"grade"`
 	GradeWeight uint `json:"grade_weight"`
 	MaxPrice float32 `json:"max_price"`
@@ -34,5 +35,9 @@ func (*biz) ListBiz(c *gin.Context) {
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
-
+	var data =make([]bizData,form.Limit)
+	if Service.Get(c,"biz",&data, map[string]interface{}{},int(form.Page))!=nil{
+		return
+	}
+	Modules.CallBack.Success(c,data)
 }

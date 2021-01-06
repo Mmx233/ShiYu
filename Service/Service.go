@@ -49,6 +49,10 @@ func Insert(c *gin.Context, table string, value map[string]interface{}) (int64, 
 	for k, v := range value {
 		keys = append(keys, k)
 		p = append(p, "?")
+		//DEMO 应对数组
+		/*switch reflect.TypeOf(v) {
+
+		}*/
 		values = append(values, v)
 	}
 	SQL := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, strings.Join(keys, ","), strings.Join(p, ","))
@@ -185,7 +189,11 @@ func Get(c *gin.Context, table string, data interface{}, where map[string]interf
 		values = append(values, v)
 	}
 	page = (page - 1) * limit
-	SQL := fmt.Sprintf("SELECT %s FROM %s WHERE %s limit %d,%d", strings.Join(keys, ","), table, strings.Join(wh, ","), page, page+limit)
+	var w string
+	if len(wh)!=0{//应对不需要where的情况
+		w="WHERE "+strings.Join(wh, ",")
+	}
+	SQL := fmt.Sprintf("SELECT %s FROM %s %s limit %d,%d", strings.Join(keys, ","), table, w, page, page+limit)
 	rows, err := DB.Query(SQL, values...)
 	defer rows.Close()
 	if err != nil {
@@ -193,7 +201,7 @@ func Get(c *gin.Context, table string, data interface{}, where map[string]interf
 		return err
 	}
 
-	//数组临时存储
+	//数组json临时存储
 	var a1 []*string
 	var a2 []interface{}
 
