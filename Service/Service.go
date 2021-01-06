@@ -138,15 +138,24 @@ func GetRow(c *gin.Context, table string, data interface{}, where map[string]int
 
 	//还原数组
 	for k, v := range temp {
-		var tempS []uint64
+		var tempS interface{}
+		switch g.Field(k).Type.String() {
+		case "[]string":
+			tempS=make([]string,0)
+		default:
+			tempS=make([]uint64,0)
+		}
 		if json.Unmarshal([]byte(*v), &tempS) != nil {
 			err := errors.New("未知错误-解码失败")
 			Modules.CallBack.ErrorWithErr(c, 102, err)
 			return err
 		}
-		for i, vv := range tempS {
-			f.Field(k).Index(i).SetUint(vv) //默认全是[]uint
+		e:=make([]reflect.Value,0)
+		q:=reflect.ValueOf(tempS)
+		for i:=0;i<q.NumField();i++ {
+			e=append(e, reflect.ValueOf(q.Field(i)))
 		}
+		f.Field(k).Set(reflect.Append(f.Field(k),e...))
 	}
 
 	return nil
@@ -222,15 +231,24 @@ func Get(c *gin.Context, table string, data interface{}, where map[string]interf
 
 	//数组还原
 	for ii, v := range a1 {
-		var temp []uint64
+		var temp interface{}
+		switch reflect.TypeOf(a2[ii]).Elem().String() {
+		case "[]string":
+			temp=make([]string,0)
+		default:
+			temp=make([]uint64,0)
+		}
 		if json.Unmarshal([]byte(*v), &temp) != nil {
 			err := errors.New("未知错误-解码失败")
 			Modules.CallBack.ErrorWithErr(c, 102, err)
 			return err
 		}
-		for iii, vv := range temp {
-			reflect.ValueOf(a2[ii]).Elem().Index(iii).SetUint(vv) //默认全是[]uint
+		e:=make([]reflect.Value,0)
+		q:=reflect.ValueOf(temp)
+		for iii:=0;iii<q.NumField();iii++ {
+			e=append(e, q.Field(iii))
 		}
+		reflect.ValueOf(a2[ii]).Elem().Set(reflect.Append(reflect.ValueOf(a2[ii]),e...))
 	}
 
 	return nil
