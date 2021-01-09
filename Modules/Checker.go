@@ -1,7 +1,6 @@
 package Modules
 
 import (
-	"debug/macho"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"reflect"
@@ -40,6 +39,10 @@ func (*checker)Form(c *gin.Context,form interface{})bool{//利用反射自动检
 			}
 		case "address":
 			if !Checker.Address(c,f.Field(i).String()){
+				return false
+			}
+		case "grade":
+			if !Checker.Grade(c,f.Field(i).Interface().(uint)){
 				return false
 			}
 		}
@@ -89,12 +92,24 @@ func (*checker)Role(c *gin.Context,role string)bool{
 }
 
 func (*checker)Pic(c *gin.Context,pics []string)bool{
+	if pics==nil{
+		CallBack.Error(c,117)
+		return false
+	}
 	for _,v := range pics{
 		//不合规规则 DEMO
 		/*if {
 			CallBack.Error(c,117)
 			return false
 		}*/
+	}
+	return true
+}
+
+func (*checker)Grade(c *gin.Context,grade uint)bool{
+	if grade>10{
+		CallBack.Error(c,121)
+		return false
 	}
 	return true
 }

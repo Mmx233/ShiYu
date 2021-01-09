@@ -4,7 +4,6 @@ import (
 	"Mmx/Modules"
 	"Mmx/Service"
 	"github.com/gin-gonic/gin"
-	"strconv"
 	"strings"
 )
 
@@ -77,7 +76,7 @@ func (*user) Change(c *gin.Context) {
 	username := c.Param("username")
 	type changeForm struct {
 		Target string `form:"target" binding:"required"`
-		Value  string `form:"value"  binding:"required"`
+		Value  interface{} `form:"value"  binding:"required"`
 	}
 	var form changeForm
 	if !Modules.Tool.BindForm(c, &form) {
@@ -86,10 +85,10 @@ func (*user) Change(c *gin.Context) {
 	form.Target = strings.ToLower(form.Target)
 	switch form.Target {
 	case "username":
-		if !Modules.Checker.UserName(c, form.Value) {
+		if !Modules.Checker.UserName(c, form.Value.(string)) {
 			return
 		}
-		if Service.Checker.AccountExist("user", form.Value) {
+		if Service.Checker.AccountExist("user", form.Value.(string)) {
 			Modules.CallBack.Error(c, 109)
 			return
 		}
@@ -101,12 +100,12 @@ func (*user) Change(c *gin.Context) {
 			return
 		}
 	case "password":
-		if !Modules.Checker.Password(c, form.Value) {
+		if !Modules.Checker.Password(c, form.Value.(string)) {
 			return
 		}
-		salt := Modules.Tool.MakeSalt(form.Value)
+		salt := Modules.Tool.MakeSalt(form.Value.(string))
 		if _, err := Service.Update(c, "user", map[string]interface{}{
-			"password": Modules.Tool.EncodePassWord(form.Value, salt),
+			"password": Modules.Tool.EncodePassWord(form.Value.(string), salt),
 			"salt":     salt,
 		}, map[string]interface{}{
 			"username": username,
@@ -114,10 +113,10 @@ func (*user) Change(c *gin.Context) {
 			return
 		}
 	case "name":
-		if !Modules.Checker.Name(c, form.Value) {
+		if !Modules.Checker.Name(c, form.Value.(string)) {
 			return
 		}
-		if !Service.Checker.Name(c, "user", username, form.Value) {
+		if !Service.Checker.Name(c, "user", username, form.Value.(string)) {
 			return
 		}
 		if _, err := Service.Update(c, "user", map[string]interface{}{
@@ -130,7 +129,7 @@ func (*user) Change(c *gin.Context) {
 	case "big_player":
 		if a, b := c.Get("role"); b != false && a.(string) == "admin" {
 			if _, err := Service.Update(c, "user", map[string]interface{}{
-				"big_player": strconv.ParseBool(form.Value),
+				"big_player": form.Value.(bool),
 			}, map[string]interface{}{
 				"username": username,
 			}); err != nil {

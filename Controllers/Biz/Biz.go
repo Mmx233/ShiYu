@@ -5,6 +5,7 @@ import (
 	"Mmx/Service"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 type biz struct{}
@@ -86,6 +87,10 @@ func (*biz)New(c *gin.Context){
 		Modules.CallBack.Error(c,119)
 		return
 	}
+	if Service.Checker.NameExist("biz",form.Name){
+		Modules.CallBack.Error(c,120)
+		return
+	}
 	picString,_:=json.Marshal(form.Pic)
 	if _,err:=Service.Insert(c,"biz", map[string]interface{}{
 		"name":form.Name,
@@ -100,6 +105,124 @@ func (*biz)New(c *gin.Context){
 		"favorite":0,
 		"dislike":0,
 		"cat_address_id":form.CatAddressId,
+	});err!=nil{
+		return
+	}
+	Modules.CallBack.Default(c)
+}
+
+func (*biz)Renew(c *gin.Context){
+	type renewBizForm struct {
+		Id uint `form:"id" binding:"required"`
+		Name string `form:"name" binding:"required"`
+		Pic []string `form:"pic" binding:"required"`
+		Grade uint `form:"grade"`
+		GradeWeight uint `form:"grade_weight"`
+		Address string `form:"address" binding:"required"`
+		CatAddressId uint `form:"cat_address_id" binding:"required"`
+		Husk uint `form:"husk"`
+		Share uint `form:"share"`
+		Favorite uint `form:"favorite"`
+		Dislike uint `form:"dislike"`
+		MaxPrice uint `form:"max_price"`
+		MinPrice uint `form:"min_price"`
+	}
+	var form renewBizForm
+	if !Modules.Tool.BindForm(c,&form){
+		return
+	}
+	if !Modules.Checker.Form(c,&form){
+		return
+	}
+	if !Service.Checker.BizExist(form.Id){
+		Modules.CallBack.Error(c, 116)
+		return
+	}
+	if !Service.Checker.CatIdExist(1,form.CatAddressId){
+		Modules.CallBack.Error(c,119)
+		return
+	}
+	if Service.Checker.NameExist("biz",form.Name){
+		Modules.CallBack.Error(c,120)
+		return
+	}
+	picString,_:=json.Marshal(form.Pic)
+	if _,err:=Service.Update(c,"biz", map[string]interface{}{
+		"name":form.Name,
+		"pic_url":picString,
+		"grade":form.Grade,
+		"grade_weight":form.GradeWeight,
+		"max_price":form.MaxPrice,
+		"min_price":form.MinPrice,
+		"address":form.Address,
+		"husk":form.Husk,
+		"share":form.Share,
+		"favorite":form.Favorite,
+		"dislike":form.Dislike,
+		"cat_address_id":form.CatAddressId,
+	}, map[string]interface{}{
+		"id":form.Id,
+	});err!=nil{
+		return
+	}
+	Modules.CallBack.Default(c)
+}
+
+func (*biz)Change(c *gin.Context){
+	type Form struct {
+		Id uint `form:"id" binding:"required"`
+		Target string `form:"target" binding:"required"`
+		Value interface{} `form:"value"  binding:"required"`
+	}
+	var form Form
+	if !Modules.Tool.BindForm(c,&form){
+		return
+	}
+	if !Service.Checker.BizExist(form.Id){
+		Modules.CallBack.Error(c,116)
+		return
+	}
+	form.Target = strings.ToLower(form.Target)
+	switch form.Target {
+	case "name":
+		if !Modules.Checker.Name(c,form.Value.(string)){
+			return
+		}
+		if Service.Checker.NameExist("biz",form.Value.(string)){
+			return
+		}
+	case "pic":
+		if !Modules.Checker.Pic(c,form.Value.([]string)){
+			return
+		}
+		form.Value,_=json.Marshal(form.Value)
+	case "cat_address_id":
+		if !Service.Checker.CatIdExist(1,form.Value.(uint)){
+			return
+		}
+	case "grade":
+		if !Modules.Checker.Grade(c,form.Value.(uint)){
+			return
+		}
+	case "address":
+		if !Modules.Checker.Address(c,form.Value.(string)){
+			return
+		}
+	case "grade_weight":
+	case "max_price":
+	case "min_price":
+	case "husk":
+	case "share":
+	case "favorite":
+	case "dislike":
+	default:
+		Modules.CallBack.Error(c, 114)
+		return
+	}
+	if _,err:=Service.Update(c,"biz", map[string]interface{}{
+		form.Target:form.Value,
+	}, map[string]interface{}{
+		"id":form.Id,
 	});err!=nil{
 		return
 	}
