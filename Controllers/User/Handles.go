@@ -34,11 +34,7 @@ func (*user) Information(c *gin.Context) {
 	}) != nil {
 		return
 	}
-	if t.HeadImg == "y" {
-		t.HeadImg = "未完成哒，这里大概部署了才能写" //DEMO
-	} else {
-		t.HeadImg = "默认头像图片URL"
-	}
+	Modules.Tool.ImgString(c,"user",&t.HeadImg)//处理头像url
 	Modules.CallBack.Success(c, t)
 }
 

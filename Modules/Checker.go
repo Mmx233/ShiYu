@@ -1,6 +1,7 @@
 package Modules
 
 import (
+	"debug/macho"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"reflect"
@@ -33,7 +34,23 @@ func (*checker)Form(c *gin.Context,form interface{})bool{//利用反射自动检
 			if !Checker.Role(c,f.Field(i).String()){
 				return false
 			}
+		case "pic":
+			if !Checker.Pic(c,f.Field(i).Interface().([]string)){
+				return false
+			}
+		case "address":
+			if !Checker.Address(c,f.Field(i).String()){
+				return false
+			}
 		}
+	}
+	return true
+}
+
+func (*checker)Address(c *gin.Context,addr string)bool{
+	if utf8.RuneCountInString(addr)>225{
+		CallBack.Error(c,118)
+		return false
 	}
 	return true
 }
@@ -67,6 +84,17 @@ func (*checker)Role(c *gin.Context,role string)bool{
 	if role!="admin"&&role!="user"{
 		CallBack.ErrorWithErr(c,102,errors.New("role参数不合法"))
 		return false
+	}
+	return true
+}
+
+func (*checker)Pic(c *gin.Context,pics []string)bool{
+	for _,v := range pics{
+		//不合规规则 DEMO
+		/*if {
+			CallBack.Error(c,117)
+			return false
+		}*/
 	}
 	return true
 }

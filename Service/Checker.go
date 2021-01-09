@@ -20,6 +20,12 @@ func (*check)NameExist(role string,name string)bool{
 	return temp
 }
 
+func (*check)BizExist(id uint)bool{
+	var temp bool
+	DB.QueryRow("SELECT 1 FROM biz WHERE id=?",id).Scan(&temp)
+	return temp
+}
+
 func (*check)Password(c *gin.Context,Role string,UserName string,PassWord string)bool{//登陆时的核对密码是否正确
 	type p struct {
 		PassWord string
@@ -36,6 +42,16 @@ func (*check)Password(c *gin.Context,Role string,UserName string,PassWord string
 		return false
 	}
 	return true
+}
+
+func (*check)CatIdExist(cat uint,id uint)bool{
+	cats:=[]string{
+		"address",
+		"food",
+	}
+	var temp bool
+	DB.QueryRow("SELECT 1 FROM cat_"+cats[cat]+" WHERE id=?",id).Scan(&temp)
+	return temp
 }
 
 func (*check)Name(c *gin.Context,role string,username string,name string)bool{//检查昵称是否被占用

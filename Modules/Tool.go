@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"math/rand"
+	"reflect"
 	"time"
 	"unicode/utf8"
 )
@@ -40,4 +41,33 @@ func (*tool)BindForm(c *gin.Context,f interface{})bool{
 		return false
 	}
 	return true
+}
+
+func(*tool)ImgString(c *gin.Context,t string,d interface{}){
+	switch t {
+	case "biz":
+		//商家图片
+		rule:="https://xxx/%s"//商家图片规则 DEMO
+		switch reflect.TypeOf(d).Elem().Kind(){
+		case reflect.Slice:
+			pics:=d.(*[]string)
+			for i,v :=range *pics{
+				(*pics)[i]=fmt.Sprintf(rule,v)
+			}
+		case reflect.String:
+			pic:=d.(*string)
+			*pic=fmt.Sprintf(rule,*pic)
+		}
+	case "user":
+		//用户头像
+		b:=d.(*string)
+		if *b=="y"{
+			u,ok:=c.Get("")
+			if ok {
+				*b = fmt.Sprintf("https://xx/%s", u) //头像规则 DEMO
+				break
+			}
+		}
+		*b="default"//默认头像
+	}
 }
