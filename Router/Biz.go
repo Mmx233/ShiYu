@@ -12,6 +12,7 @@ func routerBiz(G *gin.RouterGroup) {
 	G.POST("/",Controllers.Biz.New)//新增商户
 	G.PUT("/",Controllers.Biz.Renew)//修改商户
 	G.PATCH("/",Controllers.Biz.Change)//修改商户特定属性
+	G.DELETE("/",Controllers.Biz.Delete)//删除商家
 
 	//菜单
 	//menu:=G.Group("/menu")

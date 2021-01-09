@@ -228,3 +228,23 @@ func (*biz)Change(c *gin.Context){
 	}
 	Modules.CallBack.Default(c)
 }
+
+func (*biz)Delete(c *gin.Context){
+	type Form struct {
+		Id uint `form:"id" binding:"required"`
+	}
+	var form Form
+	if !Modules.Tool.BindForm(c,&form){
+		return
+	}
+	if !Service.Checker.BizExist(form.Id){
+		Modules.CallBack.Error(c,116)
+		return
+	}
+	if _,err:=Service.Delete(c,"biz", map[string]interface{}{
+		"id":form.Id,
+	});err!=nil{
+		return
+	}
+	Modules.CallBack.Default(c)
+}
