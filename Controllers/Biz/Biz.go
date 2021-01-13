@@ -8,7 +8,9 @@ import (
 	"strings"
 )
 
-type biz struct{}
+type biz struct{
+	Cat cat
+}
 
 var Biz biz
 
@@ -38,7 +40,7 @@ func (*biz) ListBiz(c *gin.Context) {
 		return
 	}
 	var data =make([]bizData,form.Limit)
-	if Service.Get(c,"biz",&data, map[string]interface{}{},int(form.Page))!=nil{
+	if Service.GetWithLimit(c,"biz",&data, map[string]interface{}{},int(form.Page))!=nil{
 		return
 	}
 	for i:=range data{//处理img Url
@@ -83,7 +85,7 @@ func (*biz)New(c *gin.Context){
 	if !Modules.Checker.Form(c,&form){
 		return
 	}
-	if !Service.Checker.CatIdExist(1,form.CatAddressId){
+	if !Service.Checker.CatIdExist("address",form.CatAddressId){
 		Modules.CallBack.Error(c,119)
 		return
 	}
@@ -92,7 +94,7 @@ func (*biz)New(c *gin.Context){
 		return
 	}
 	picString,_:=json.Marshal(form.Pic)
-	if _,err:=Service.Insert(c,"biz", map[string]interface{}{
+	id,err:=Service.Insert(c,"biz", map[string]interface{}{
 		"name":form.Name,
 		"pic_url":picString,
 		"grade":0,
@@ -105,10 +107,13 @@ func (*biz)New(c *gin.Context){
 		"favorite":0,
 		"dislike":0,
 		"cat_address_id":form.CatAddressId,
-	});err!=nil{
+	})
+	if err!=nil{
 		return
 	}
-	Modules.CallBack.Default(c)
+	Modules.CallBack.Success(c,map[string]int64{
+		"id":id,
+	})
 }
 
 func (*biz)Renew(c *gin.Context){
@@ -138,7 +143,7 @@ func (*biz)Renew(c *gin.Context){
 		Modules.CallBack.Error(c, 116)
 		return
 	}
-	if !Service.Checker.CatIdExist(1,form.CatAddressId){
+	if !Service.Checker.CatIdExist("address",form.CatAddressId){
 		Modules.CallBack.Error(c,119)
 		return
 	}
@@ -197,7 +202,7 @@ func (*biz)Change(c *gin.Context){
 		}
 		form.Value,_=json.Marshal(form.Value)
 	case "cat_address_id":
-		if !Service.Checker.CatIdExist(1,form.Value.(uint)){
+		if !Service.Checker.CatIdExist("address",form.Value.(uint)){
 			return
 		}
 	case "grade":

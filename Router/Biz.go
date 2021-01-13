@@ -18,7 +18,12 @@ func routerBiz(G *gin.RouterGroup) {
 	//menu:=G.Group("/menu")
 
 	//分类
-	//cat:=G.Group("/cat")
+	cat:=G.Group("/cat")
+	cat.GET("/list",Controllers.Biz.Cat.ListContent)//列出分类下商户/菜品
+	cat.GET("/",Controllers.Biz.Cat.List)//列出分类
+	cat.POST("/",Controllers.Biz.Cat.New)//新增分类
+	cat.PUT("/",Controllers.Biz.Cat.Renew)//修改分类
+	cat.DELETE("/",Controllers.Biz.Cat.Delete)//删除分类
 
 	//搜索
 	//search:=G.Group("/search")

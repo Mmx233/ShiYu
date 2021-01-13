@@ -45,6 +45,10 @@ func (*checker)Form(c *gin.Context,form interface{})bool{//利用反射自动检
 			if !Checker.Grade(c,f.Field(i).Interface().(uint)){
 				return false
 			}
+		case "cat":
+			if !Checker.Cat(c,f.Field(i).String()){
+				return false
+			}
 		}
 	}
 	return true
@@ -109,6 +113,14 @@ func (*checker)Pic(c *gin.Context,pics []string)bool{
 func (*checker)Grade(c *gin.Context,grade uint)bool{
 	if grade>10{
 		CallBack.Error(c,121)
+		return false
+	}
+	return true
+}
+
+func (*checker)Cat(c *gin.Context,cat string)bool{
+	if cat!="address"&&cat!="food"{
+		CallBack.Error(c,122)
 		return false
 	}
 	return true

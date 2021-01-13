@@ -165,7 +165,92 @@ func GetRow(c *gin.Context, table string, data interface{}, where map[string]int
 	return nil
 }
 
-func Get(c *gin.Context, table string, data interface{}, where map[string]interface{}, page int) error { //传入data为结构体的切片的指针，必须make，按容量扫描
+func Get(c *gin.Context,table string,data interface{},where map[string]interface{})error{
+	var wh []string
+	var keys []string
+	var values []interface{}
+
+	{
+		f:=reflect.TypeOf(data).Elem()
+		for i:=1;i<f.NumField();i++{
+			if f.Field(i).Tag.Get("json")!=""{
+				keys=append(keys,f.Field(i).Tag.Get("json"))
+			}else{
+				keys=append(keys,strings.ToLower(f.Field(i).Name))
+			}
+		}
+	}
+
+	for k,v:=range where{
+		wh=append(wh,k+"=?")
+		values=append(values,v)
+	}
+	var w string
+	if len(where)!=0{
+		w=fmt.Sprintf("WHERE %s",strings.Join(wh,","))
+	}
+	SQL := fmt.Sprintf("SELECT %s FROM %s %s", strings.Join(keys, ","), table, w)
+	if rows,err:=DB.Query(SQL,values...);err!=nil{
+		er(c,err)
+		return err
+	}else{
+		for t:=1;rows.Next();t++{
+			e:=reflect.ValueOf(data).Elem().Index(1).Interface()
+			var g []interface{}
+			var a1 []*string
+			var a2 []interface{}
+			{//取指针
+				f:=reflect.ValueOf(e)
+				for i:=0;i<f.NumField();i++{
+					//数组取代
+					if f.Field(i).Kind() == reflect.Slice {
+						var s string
+						g = append(g, &s)
+						a1 = append(a1, &s)
+						a2 = append(a2, f.Field(i).Addr())
+						continue
+					}else {
+						g = append(g, f.Field(i).Addr())
+					}
+				}
+			}
+			if err:=rows.Scan(g...);err!=nil{
+				er(c,err)
+				return err
+			}
+			//数组还原
+			for ii, v := range a1 {
+				var temp interface{}
+				switch reflect.TypeOf(a2[ii]).Elem().String() {
+				case "[]string":
+					temp=make([]string,0)
+				default:
+					temp=make([]uint64,0)
+				}
+				if json.Unmarshal([]byte(*v), &temp) != nil {
+					err := errors.New("未知错误-解码失败")
+					Modules.CallBack.ErrorWithErr(c, 102, err)
+					return err
+				}
+				e:=make([]reflect.Value,0)
+				q:=reflect.ValueOf(temp)
+				for iii:=0;iii<q.NumField();iii++ {
+					e=append(e, q.Field(iii))
+				}
+				reflect.ValueOf(a2[ii]).Elem().Set(reflect.Append(reflect.ValueOf(a2[ii]),e...))
+			}
+
+			if reflect.ValueOf(data).Elem().Len()<=t{
+				reflect.ValueOf(data).Elem().Index(t-1).Set(reflect.ValueOf(e))
+			}else{
+				reflect.Append(reflect.ValueOf(data).Elem(),reflect.ValueOf(e))
+			}
+		}
+	}
+	return nil
+}
+
+func GetWithLimit(c *gin.Context, table string, data interface{}, where map[string]interface{}, page int) error { //传入data为结构体的切片的指针，必须make，按容量扫描
 	var keys []string
 	var wh []string
 	var values []interface{}

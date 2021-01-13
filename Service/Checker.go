@@ -44,13 +44,9 @@ func (*check)Password(c *gin.Context,Role string,UserName string,PassWord string
 	return true
 }
 
-func (*check)CatIdExist(cat uint,id uint)bool{
-	cats:=[]string{
-		"address",
-		"food",
-	}
+func (*check)CatIdExist(cat string,id uint)bool{
 	var temp bool
-	DB.QueryRow("SELECT 1 FROM cat_"+cats[cat]+" WHERE id=?",id).Scan(&temp)
+	DB.QueryRow("SELECT 1 FROM cat_"+cat+" WHERE id=?",id).Scan(&temp)
 	return temp
 }
 
