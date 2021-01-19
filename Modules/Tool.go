@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"math/rand"
 	"reflect"
+	"sort"
 	"time"
 	"unicode/utf8"
 )
@@ -70,4 +71,35 @@ func(*tool)ImgString(c *gin.Context,t string,d interface{}){
 		}
 		*b="default"//默认头像
 	}
+}
+
+func (*tool)Find(a []uint,b uint)bool{//find b in a
+	var c []int
+	d:=int(b)
+	for _,v:=range a{
+		c=append(c,int(v))
+	}
+	sort.Ints(c)
+	if len(c)==0{
+		return false
+	}
+	if c[0]==d||c[len(c)-1]==d{
+		return true
+	}
+	var i =0
+	var ii= len(c)-1
+	for{
+		iii:=(ii-i)/2
+		if iii==0{
+			break
+		}
+		if c[iii+i]==d{
+			return true
+		}else if a[iii+i]>b{
+			ii=ii-iii
+		}else{
+			i+=iii
+		}
+	}
+	return false
 }
