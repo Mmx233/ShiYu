@@ -15,7 +15,10 @@ func routerBiz(G *gin.RouterGroup) {
 	G.DELETE("/",Controllers.Biz.Delete)//删除商家
 
 	//菜单
-	//menu:=G.Group("/menu")
+	menu:=G.Group("/menu")
+	menu.GET("/",Controllers.Biz.Menu.Information)//根据商家获取菜单
+	menu.GET("/cat")//根据分类获取菜单
+
 
 	//分类
 	cat:=G.Group("/cat")

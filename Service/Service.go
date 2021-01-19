@@ -92,37 +92,74 @@ func Delete(c *gin.Context, table string, where map[string]interface{}) (int64, 
 	return id, err
 }
 
-func GetRow(c *gin.Context, table string, data interface{}, where map[string]interface{}) error { //传入的data为结构体的指针，否则无法工作
-	var points []interface{}
+func getKeys(v reflect.Type)[]string{
 	var keys []string
+	for i:=0;i<v.NumField();i++{
+		if v.Field(i).Tag.Get("skip")=="true"{
+			continue
+		}
+		if v.Field(i).Tag.Get("json")!=""{
+			keys=append(keys,v.Field(i).Tag.Get("json"))
+			continue
+		}
+		keys=append(keys,strings.ToLower(v.Name()))
+	}
+	return keys
+}
+
+func getKeysAndPointers(d interface{})([]string,[]interface{},[]*string,[]interface{}){//获取结构体字段名的字符串切片及其地址
+	//返回的值依次为 字段切片 地址指针切片 临时数组字符串指针切片 数组真实指针切片
+	var keys []string
+	var pointers []interface{}
+	var a1 []*string
+	var a2 []interface{}
+	v:=reflect.TypeOf(d).Elem()
+	keys=getKeys(v)//获取字段名
+	f:=reflect.ValueOf(d).Elem()
+	for i:=0;i<f.NumField();i++{//获取其他
+		if v.Field(i).Tag.Get("skip")=="true"{
+			continue
+		}
+		if f.Field(i).Kind()==reflect.Slice{
+			var s string
+			pointers=append(pointers,&s)
+			a1=append(a1,&s)
+			a2=append(a2,f.Field(i).Addr())
+		}
+		pointers=append(pointers,f.Field(i).Addr())
+	}
+	return keys,pointers,a1,a2
+}
+
+func turnSliceBack(c *gin.Context,a1 []*string,a2 []interface{})error{
+	for ii, v := range a1 {
+		var temp interface{}
+		if strings.Contains(reflect.TypeOf(a2[ii]).Elem().String(),"\"") {
+			temp = make([]string, 0)
+		}else{
+			temp=make([]uint64,0)
+		}
+		if json.Unmarshal([]byte(*v), &temp) != nil {
+			err := errors.New("未知错误-解码失败")
+			Modules.CallBack.ErrorWithErr(c, 102, err)
+			return err
+		}
+		e:=make([]reflect.Value,0)
+		q:=reflect.ValueOf(temp)
+		for iii:=0;iii<q.NumField();iii++ {
+			e=append(e, q.Field(iii))
+		}
+		reflect.ValueOf(a2[ii]).Elem().Set(reflect.Append(reflect.ValueOf(a2[ii]),e...))
+	}
+	return nil
+}
+
+func GetRow(c *gin.Context, table string, data interface{}, where map[string]interface{}) error { //传入的data为结构体的指针，否则无法工作
 	var wh []string
 	var values []interface{}
 
-	//临时数组json 原字符串存储
-	var temp = make(map[int]*string)
-
 	//获取data结构体信息
-	f := reflect.ValueOf(data).Elem()
-	for i := 0; i < f.NumField(); i++ { //取址
-		if f.Field(i).Kind() == reflect.Slice {
-			//对应数据库的数组存储
-			//目前数据库所有数组都为[]uint
-			//对数组的还原在本函数底部
-			var s string
-			points = append(points, &s)
-			temp[i] = &s
-			continue
-		}
-		points = append(points, f.Field(i).Addr())
-	}
-	g := reflect.TypeOf(data).Elem()
-	for i := 0; i < g.NumField(); i++ { //获取对应字段名，对应数据库中键名
-		if g.Field(i).Tag.Get("json") != "" {
-			keys = append(keys, strings.ToLower(g.Field(i).Tag.Get("json"))) //有json tag则使用
-		} else {
-			keys = append(keys, strings.ToLower(g.Field(i).Name))
-		}
-	}
+	keys,points,a1,a2:=getKeysAndPointers(data)
 
 	//构造查询语句
 	for k, v := range where {
@@ -140,29 +177,7 @@ func GetRow(c *gin.Context, table string, data interface{}, where map[string]int
 		return err
 	}
 
-	//还原数组
-	for k, v := range temp {
-		var tempS interface{}
-		switch g.Field(k).Type.String() {
-		case "[]string":
-			tempS=make([]string,0)
-		default:
-			tempS=make([]uint64,0)
-		}
-		if json.Unmarshal([]byte(*v), &tempS) != nil {
-			err := errors.New("未知错误-解码失败")
-			Modules.CallBack.ErrorWithErr(c, 102, err)
-			return err
-		}
-		e:=make([]reflect.Value,0)
-		q:=reflect.ValueOf(tempS)
-		for i:=0;i<q.NumField();i++ {
-			e=append(e, reflect.ValueOf(q.Field(i)))
-		}
-		f.Field(k).Set(reflect.Append(f.Field(k),e...))
-	}
-
-	return nil
+	return turnSliceBack(c,a1,a2)
 }
 
 func Get(c *gin.Context,table string,data interface{},where map[string]interface{})error{
@@ -170,15 +185,10 @@ func Get(c *gin.Context,table string,data interface{},where map[string]interface
 	var keys []string
 	var values []interface{}
 
+	//取字段名
 	{
-		f:=reflect.TypeOf(data).Elem()
-		for i:=1;i<f.NumField();i++{
-			if f.Field(i).Tag.Get("json")!=""{
-				keys=append(keys,f.Field(i).Tag.Get("json"))
-			}else{
-				keys=append(keys,strings.ToLower(f.Field(i).Name))
-			}
-		}
+		g:=reflect.ValueOf(data).Elem().Index(0)
+		keys=getKeys(reflect.TypeOf(g.Interface()))
 	}
 
 	for k,v:=range where{
@@ -195,49 +205,15 @@ func Get(c *gin.Context,table string,data interface{},where map[string]interface
 		return err
 	}else{
 		for t:=1;rows.Next();t++{
-			e:=reflect.ValueOf(data).Elem().Index(1).Interface()
-			var g []interface{}
-			var a1 []*string
-			var a2 []interface{}
-			{//取指针
-				f:=reflect.ValueOf(e)
-				for i:=0;i<f.NumField();i++{
-					//数组取代
-					if f.Field(i).Kind() == reflect.Slice {
-						var s string
-						g = append(g, &s)
-						a1 = append(a1, &s)
-						a2 = append(a2, f.Field(i).Addr())
-						continue
-					}else {
-						g = append(g, f.Field(i).Addr())
-					}
-				}
-			}
+			e:=reflect.ValueOf(data).Elem().Index(0).Interface()
+			_,g,a1,a2:=getKeysAndPointers(&e)
 			if err:=rows.Scan(g...);err!=nil{
 				er(c,err)
 				return err
 			}
 			//数组还原
-			for ii, v := range a1 {
-				var temp interface{}
-				switch reflect.TypeOf(a2[ii]).Elem().String() {
-				case "[]string":
-					temp=make([]string,0)
-				default:
-					temp=make([]uint64,0)
-				}
-				if json.Unmarshal([]byte(*v), &temp) != nil {
-					err := errors.New("未知错误-解码失败")
-					Modules.CallBack.ErrorWithErr(c, 102, err)
-					return err
-				}
-				e:=make([]reflect.Value,0)
-				q:=reflect.ValueOf(temp)
-				for iii:=0;iii<q.NumField();iii++ {
-					e=append(e, q.Field(iii))
-				}
-				reflect.ValueOf(a2[ii]).Elem().Set(reflect.Append(reflect.ValueOf(a2[ii]),e...))
+			if err:=turnSliceBack(c,a1,a2);err!=nil{
+				return err
 			}
 
 			if reflect.ValueOf(data).Elem().Len()<=t{
@@ -260,13 +236,7 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 	{ //取字段名
 		limit = reflect.ValueOf(data).Elem().Len()
 		j := reflect.TypeOf(reflect.ValueOf(data).Elem().Index(0).Interface())
-		for i := 0; i < j.NumField(); i++ {
-			if j.Field(i).Tag.Get("json") != "" {
-				keys = append(keys, j.Field(i).Tag.Get("json"))
-			} else {
-				keys = append(keys, strings.ToLower(j.Field(i).Name))
-			}
-		}
+		keys=getKeys(j)
 	}
 
 	for k, v := range where {
@@ -294,17 +264,10 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 	for rows.Next() {
 		//取指针
 		var points []interface{}
-		o := reflect.ValueOf(reflect.ValueOf(data).Elem().Index(i).Interface())
-		for ii := 0; ii < o.NumField(); ii++ {
-			if o.Field(ii).Kind() == reflect.Slice {
-				var s string
-				points = append(points, &s)
-				a1 = append(a1, &s)
-				a2 = append(a2, o.Field(ii).Addr())
-				continue
-			}
-			points = append(points, o.Field(ii).Addr())
-		}
+		o := reflect.ValueOf(data).Elem().Index(i).Interface()
+		_,points,b1,b2:=getKeysAndPointers(&o)
+		a1=append(a1,b1...)
+		a2=append(a2,b2...)
 
 		//导入数据
 		if err := rows.Scan(points...); err != nil {
@@ -322,27 +285,5 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 		reflect.ValueOf(data).Elem().SetLen(i)
 	}
 
-	//数组还原
-	for ii, v := range a1 {
-		var temp interface{}
-		switch reflect.TypeOf(a2[ii]).Elem().String() {
-		case "[]string":
-			temp=make([]string,0)
-		default:
-			temp=make([]uint64,0)
-		}
-		if json.Unmarshal([]byte(*v), &temp) != nil {
-			err := errors.New("未知错误-解码失败")
-			Modules.CallBack.ErrorWithErr(c, 102, err)
-			return err
-		}
-		e:=make([]reflect.Value,0)
-		q:=reflect.ValueOf(temp)
-		for iii:=0;iii<q.NumField();iii++ {
-			e=append(e, q.Field(iii))
-		}
-		reflect.ValueOf(a2[ii]).Elem().Set(reflect.Append(reflect.ValueOf(a2[ii]),e...))
-	}
-
-	return nil
+	return turnSliceBack(c,a1,a2)
 }

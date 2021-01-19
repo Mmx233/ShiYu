@@ -10,6 +10,7 @@ import (
 
 type biz struct{
 	Cat cat
+	Menu menu
 }
 
 var Biz biz
