@@ -9,7 +9,9 @@ import (
 	"strings"
 )
 
-type menu struct{}
+type menu struct{
+	Fav fav
+}
 
 func get(c *gin.Context, where map[string]interface{}) (interface{}, error) {
 	type d struct {
@@ -254,6 +256,67 @@ func (*menu) Delete(c *gin.Context) {
 	if _, err := Service.Delete(c, "biz_menu", map[string]interface{}{
 		"id": form.Id,
 	}); err != nil {
+		return
+	}
+	Modules.CallBack.Default(c)
+}
+
+type fav struct {}
+
+func (*fav)Make(c *gin.Context){
+	var form struct{
+		Id uint `form:"id" binding:"required"`
+	}
+	if !Modules.Checker.Form(c,&form){
+		return
+	}
+	var fav []uint
+	var is bool
+	if is,fav=Service.Checker.IsFav(c,form.Id);is{
+		Modules.CallBack.Error(c,125)
+		return
+	}
+	for i,v:=range fav{
+		if v==form.Id{
+			if i==len(fav)-1{
+				fav=fav[:len(fav)-2]
+			}else if i==0{
+				fav=fav[1:]
+			}else{
+				fav=append(fav[:i-1],fav[i+1:]...)
+			}
+			break
+		}
+	}
+	if _,err:=Service.Update(c,"user", map[string]interface{}{
+		"favorites":fav,
+	}, map[string]interface{}{
+		"username":c.Get("username"),
+	});err!=nil{
+		return
+	}
+	Modules.CallBack.Default(c)
+}
+
+func (*fav)Cancel(c *gin.Context){
+	var form struct{
+		Id uint `form:"id" binding:"required"`
+	}
+	if !Modules.Checker.Form(c,&form){
+		return
+	}
+	var fav []uint
+	var is bool
+	if is,fav=Service.Checker.IsFav(c,form.Id);!is{
+		Modules.CallBack.Error(c,124)
+		return
+	}
+	fav=append(fav,form.Id)
+	if _,err:=Service.Update(c,"user", map[string]interface{}{
+		"favorites":fav,
+	}, map[string]interface{}{
+		"username":c.Get("username"),
+	});err!=nil{
 		return
 	}
 	Modules.CallBack.Default(c)

@@ -76,3 +76,16 @@ func (*check) Name(c *gin.Context, role string, username string, name string) bo
 	}
 	return true
 }
+
+func (*check)IsFav(c *gin.Context,id uint) (bool,[]uint){
+	//只适用于检查单个ID，对表建议单独写或新函数
+	var u struct{
+		fav []uint `json:"favorites"`
+	}
+	if GetRow(nil,"user",&u, map[string]interface{}{
+		"username":c.Get("username"),
+	})!=nil{
+		return false,nil
+	}
+	return Modules.Tool.Find(u.fav,id),u.fav
+}

@@ -14,6 +14,8 @@ func routerBiz(G *gin.RouterGroup) {
 	G.PATCH("/", Controllers.Biz.Change)    //修改商户特定属性
 	G.DELETE("/", Controllers.Biz.Delete)   //删除商家
 
+	//以下均为Biz子路由
+
 	//菜单
 	menu := G.Group("/menu")
 	menu.GET("/", Controllers.Biz.Menu.Information)                      //根据商家获取菜单
@@ -32,7 +34,10 @@ func routerBiz(G *gin.RouterGroup) {
 	cat.PUT("/", Controllers.Biz.Cat.Renew)           //修改分类
 	cat.DELETE("/", Controllers.Biz.Cat.Delete)       //删除分类
 
-	//favorite部分
+	//favorite
+	fav:=menu.Group("/fav")
+	fav.POST("/",Controllers.Biz.Menu.Fav.Make)//收藏
+	fav.DELETE("/",Controllers.Biz.Menu.Fav.Cancel)//取消收藏
 
 	//搜索
 	//search:=G.Group("/search")

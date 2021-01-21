@@ -91,10 +91,9 @@ func (*biz) New(c *gin.Context) {
 		Modules.CallBack.Error(c, 120)
 		return
 	}
-	picString, _ := json.Marshal(form.Pic)
 	id, err := Service.Insert(c, "biz", map[string]interface{}{
 		"name":           form.Name,
-		"pic_url":        picString,
+		"pic_url":        form.Pic,
 		"grade":          0,
 		"grade_weight":   0,
 		"max_price":      0,
@@ -148,10 +147,9 @@ func (*biz) Renew(c *gin.Context) {
 		Modules.CallBack.Error(c, 120)
 		return
 	}
-	picString, _ := json.Marshal(form.Pic)
 	if _, err := Service.Update(c, "biz", map[string]interface{}{
 		"name":           form.Name,
-		"pic_url":        picString,
+		"pic_url":        form.Pic,
 		"grade":          form.Grade,
 		"grade_weight":   form.GradeWeight,
 		"max_price":      form.MaxPrice,

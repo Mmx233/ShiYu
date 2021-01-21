@@ -16,8 +16,14 @@ import (
 var DB *sql.DB
 
 func er(c *gin.Context, e error) { //向响应体写入报错json
-	if e != nil {
+	if e != nil && c !=nil {
 		Modules.CallBack.Error(c, 102)
+	}
+}
+
+func erCode(c *gin.Context,code int){
+	if c!=nil{
+		Modules.CallBack.Error(c,code)
 	}
 }
 
@@ -49,11 +55,15 @@ func Insert(c *gin.Context, table string, value map[string]interface{}) (int64, 
 	for k, v := range value {
 		keys = append(keys, k)
 		p = append(p, "?")
-		//DEMO 应对数组
-		/*switch reflect.TypeOf(v) {
-
-		}*/
-		values = append(values, v)
+		//数组字符串化
+		switch reflect.TypeOf(v).Kind() {
+		case reflect.Slice:
+			temp,_:=json.Marshal(v)
+			//DEMO 应对超长
+			values = append(values,temp)
+		default:
+			values = append(values, v)
+		}
 	}
 	SQL := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, strings.Join(keys, ","), strings.Join(p, ","))
 	id, err := Exec(SQL, values...)
@@ -67,7 +77,15 @@ func Update(c *gin.Context, table string, value map[string]interface{}, where ma
 	var values []interface{}
 	for k, v := range value {
 		keys = append(keys, k+"=?")
-		values = append(values, v)
+		//数组字符串化
+		switch reflect.TypeOf(v).Kind() {
+		case reflect.Slice:
+			temp,_:=json.Marshal(v)
+			//DEMO 应对超长
+			values = append(values,temp)
+		default:
+			values = append(values, v)
+		}
 	}
 	for w, v := range where {
 		wh = append(wh, w)
@@ -141,7 +159,7 @@ func turnSliceBack(c *gin.Context, a1 []*string, a2 []interface{}) error {
 		}
 		if json.Unmarshal([]byte(*v), &temp) != nil {
 			err := errors.New("未知错误-解码失败")
-			Modules.CallBack.ErrorWithErr(c, 102, err)
+			er(c,err)
 			return err
 		}
 		e := make([]reflect.Value, 0)
@@ -279,7 +297,7 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 	}
 	//应对数据不够一页及超出
 	if i == 0 {
-		Modules.CallBack.Error(c, 115)
+		erCode(c,115)
 		return errors.New("没有更多了")
 	} else if i != limit {
 		reflect.ValueOf(data).Elem().SetLen(i)
