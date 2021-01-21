@@ -31,7 +31,7 @@ func get(c *gin.Context, where map[string]interface{}) (interface{}, error) {
 		Favorites []uint `json:"favorites"`
 	}
 	if err := Service.GetRow(c, "user", &u, map[string]interface{}{
-		"username": c.Get("username"),
+		"username": c.GetString("username"),
 	}); err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (*menu) InformationForFavorites(c *gin.Context) {
 		Favorites []uint `json:"favorites"`
 	}
 	if Service.GetRow(c, "user", &u, map[string]interface{}{
-		"username": c.Get("username"),
+		"username": c.GetString("username"),
 	}) != nil {
 		return
 	}
@@ -291,7 +291,7 @@ func (*fav)Make(c *gin.Context){
 	if _,err:=Service.Update(c,"user", map[string]interface{}{
 		"favorites":fav,
 	}, map[string]interface{}{
-		"username":c.Get("username"),
+		"username":c.GetString("username"),
 	});err!=nil{
 		return
 	}
@@ -315,7 +315,7 @@ func (*fav)Cancel(c *gin.Context){
 	if _,err:=Service.Update(c,"user", map[string]interface{}{
 		"favorites":fav,
 	}, map[string]interface{}{
-		"username":c.Get("username"),
+		"username":c.GetString("username"),
 	});err!=nil{
 		return
 	}

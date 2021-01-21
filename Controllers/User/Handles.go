@@ -65,7 +65,7 @@ func (*user) Renew(c *gin.Context) {
 		"salt":     salt,
 		"name":     form.Name,
 	}
-	if a, b := c.Get("role"); b != false && a.(string) == "admin" { //admin可以修改是否为大玩家
+	if c.GetString("role") == "admin" { //admin可以修改是否为大玩家
 		insertMap["big_player"] = form.BigPlayer
 	}
 	Modules.CallBack.Default(c)
@@ -141,7 +141,7 @@ func (*user) Change(c *gin.Context) {
 			Modules.CallBack.Error(c, 101)
 			return
 		}
-		if a, b := c.Get("role"); b && a.(string) == "admin" {
+		if c.GetString("role") == "admin" {
 			if _, err := Service.Update(c, "user", map[string]interface{}{
 				"big_player": form.Value.(bool),
 			}, map[string]interface{}{

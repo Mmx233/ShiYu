@@ -1,7 +1,6 @@
 package Modules
 
 import (
-	"Mmx/Service"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"reflect"
@@ -98,17 +97,17 @@ func (*checker) Role(c *gin.Context, role string) bool {
 }
 
 func (*checker) Pic(c *gin.Context, pics []string) bool {
-	if pics == nil {
+	/*if pics == nil {
 		CallBack.Error(c, 117)
 		return false
 	}
 	for _, v := range pics {
 		//不合规规则 DEMO
-		/*if {
-			CallBack.Error(c,117)
-			return false
-		}*/
-	}
+		//if {
+		//	CallBack.Error(c,117)
+		//	return false
+		//}
+	}*/
 	return true
 }
 

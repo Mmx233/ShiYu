@@ -11,6 +11,7 @@ import (
 type biz struct {
 	Cat  cat
 	Menu menu
+	Search sear
 }
 
 var Biz biz

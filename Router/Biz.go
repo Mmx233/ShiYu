@@ -40,5 +40,8 @@ func routerBiz(G *gin.RouterGroup) {
 	fav.DELETE("/",Controllers.Biz.Menu.Fav.Cancel)//取消收藏
 
 	//搜索
-	//search:=G.Group("/search")
+	search:=G.Group("/search")
+	search.GET("/biz",Controllers.Biz.Search.Biz)//搜索商家
+	search.GET("/menu",Controllers.Biz.Search.Menu)//搜索菜单
+	search.GET("/fav",Controllers.Biz.Search.Fav)//搜索收藏
 }

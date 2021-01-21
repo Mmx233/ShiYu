@@ -78,12 +78,12 @@ func (*check) Name(c *gin.Context, role string, username string, name string) bo
 }
 
 func (*check)IsFav(c *gin.Context,id uint) (bool,[]uint){
-	//只适用于检查单个ID，对表建议单独写或新函数
+	//特殊函数，接收了c但是不写报错
 	var u struct{
 		fav []uint `json:"favorites"`
 	}
 	if GetRow(nil,"user",&u, map[string]interface{}{
-		"username":c.Get("username"),
+		"username":c.GetString("username"),
 	})!=nil{
 		return false,nil
 	}
