@@ -33,7 +33,7 @@ func (*user) Information(c *gin.Context) {
 	}) != nil {
 		return
 	}
-	Modules.Tool.ImgString(c,"user",&t.HeadImg)//处理头像url
+	Modules.Tool.ImgString(c, "user", &t.HeadImg) //处理头像url
 	Modules.CallBack.Success(c, t)
 }
 
@@ -74,7 +74,7 @@ func (*user) Renew(c *gin.Context) {
 func (*user) Change(c *gin.Context) {
 	username := c.Param("username")
 	var form struct {
-		Target string `form:"target" binding:"required"`
+		Target string      `form:"target" binding:"required"`
 		Value  interface{} `form:"value"  binding:"required"`
 	}
 	if !Modules.Tool.BindForm(c, &form) {
@@ -83,8 +83,8 @@ func (*user) Change(c *gin.Context) {
 	form.Target = strings.ToLower(form.Target)
 	switch form.Target {
 	case "username":
-		if _,ok:=form.Value.(string);!ok{
-			Modules.CallBack.Error(c,101)
+		if _, ok := form.Value.(string); !ok {
+			Modules.CallBack.Error(c, 101)
 			return
 		}
 		if !Modules.Checker.UserName(c, form.Value.(string)) {
@@ -102,8 +102,8 @@ func (*user) Change(c *gin.Context) {
 			return
 		}
 	case "password":
-		if _,ok:=form.Value.(string);!ok{
-			Modules.CallBack.Error(c,101)
+		if _, ok := form.Value.(string); !ok {
+			Modules.CallBack.Error(c, 101)
 			return
 		}
 		if !Modules.Checker.Password(c, form.Value.(string)) {
@@ -119,8 +119,8 @@ func (*user) Change(c *gin.Context) {
 			return
 		}
 	case "name":
-		if _,ok:=form.Value.(string);!ok{
-			Modules.CallBack.Error(c,101)
+		if _, ok := form.Value.(string); !ok {
+			Modules.CallBack.Error(c, 101)
 			return
 		}
 		if !Modules.Checker.Name(c, form.Value.(string)) {
@@ -137,8 +137,8 @@ func (*user) Change(c *gin.Context) {
 			return
 		}
 	case "big_player":
-		if _,ok:=form.Value.(bool);!ok{
-			Modules.CallBack.Error(c,101)
+		if _, ok := form.Value.(bool); !ok {
+			Modules.CallBack.Error(c, 101)
 			return
 		}
 		if a, b := c.Get("role"); b && a.(string) == "admin" {

@@ -92,64 +92,64 @@ func Delete(c *gin.Context, table string, where map[string]interface{}) (int64, 
 	return id, err
 }
 
-func getKeys(v reflect.Type)[]string{
+func getKeys(v reflect.Type) []string {
 	var keys []string
-	for i:=0;i<v.NumField();i++{
-		if v.Field(i).Tag.Get("skip")=="true"{
+	for i := 0; i < v.NumField(); i++ {
+		if v.Field(i).Tag.Get("skip") == "true" {
 			continue
 		}
-		if v.Field(i).Tag.Get("json")!=""{
-			keys=append(keys,v.Field(i).Tag.Get("json"))
+		if v.Field(i).Tag.Get("json") != "" {
+			keys = append(keys, v.Field(i).Tag.Get("json"))
 			continue
 		}
-		keys=append(keys,strings.ToLower(v.Name()))
+		keys = append(keys, strings.ToLower(v.Name()))
 	}
 	return keys
 }
 
-func getKeysAndPointers(d interface{})([]string,[]interface{},[]*string,[]interface{}){//获取结构体字段名的字符串切片及其地址
+func getKeysAndPointers(d interface{}) ([]string, []interface{}, []*string, []interface{}) { //获取结构体字段名的字符串切片及其地址
 	//返回的值依次为 字段切片 地址指针切片 临时数组字符串指针切片 数组真实指针切片
 	var keys []string
 	var pointers []interface{}
 	var a1 []*string
 	var a2 []interface{}
-	v:=reflect.TypeOf(d).Elem()
-	keys=getKeys(v)//获取字段名
-	f:=reflect.ValueOf(d).Elem()
-	for i:=0;i<f.NumField();i++{//获取其他
-		if v.Field(i).Tag.Get("skip")=="true"{
+	v := reflect.TypeOf(d).Elem()
+	keys = getKeys(v) //获取字段名
+	f := reflect.ValueOf(d).Elem()
+	for i := 0; i < f.NumField(); i++ { //获取其他
+		if v.Field(i).Tag.Get("skip") == "true" {
 			continue
 		}
-		if f.Field(i).Kind()==reflect.Slice{
+		if f.Field(i).Kind() == reflect.Slice {
 			var s string
-			pointers=append(pointers,&s)
-			a1=append(a1,&s)
-			a2=append(a2,f.Field(i).Addr())
+			pointers = append(pointers, &s)
+			a1 = append(a1, &s)
+			a2 = append(a2, f.Field(i).Addr())
 		}
-		pointers=append(pointers,f.Field(i).Addr())
+		pointers = append(pointers, f.Field(i).Addr())
 	}
-	return keys,pointers,a1,a2
+	return keys, pointers, a1, a2
 }
 
-func turnSliceBack(c *gin.Context,a1 []*string,a2 []interface{})error{
+func turnSliceBack(c *gin.Context, a1 []*string, a2 []interface{}) error {
 	for ii, v := range a1 {
 		var temp interface{}
-		if strings.Contains(reflect.TypeOf(a2[ii]).Elem().String(),"\"") {
+		if strings.Contains(reflect.TypeOf(a2[ii]).Elem().String(), "\"") {
 			temp = make([]string, 0)
-		}else{
-			temp=make([]uint64,0)
+		} else {
+			temp = make([]uint64, 0)
 		}
 		if json.Unmarshal([]byte(*v), &temp) != nil {
 			err := errors.New("未知错误-解码失败")
 			Modules.CallBack.ErrorWithErr(c, 102, err)
 			return err
 		}
-		e:=make([]reflect.Value,0)
-		q:=reflect.ValueOf(temp)
-		for iii:=0;iii<q.NumField();iii++ {
-			e=append(e, q.Field(iii))
+		e := make([]reflect.Value, 0)
+		q := reflect.ValueOf(temp)
+		for iii := 0; iii < q.NumField(); iii++ {
+			e = append(e, q.Field(iii))
 		}
-		reflect.ValueOf(a2[ii]).Elem().Set(reflect.Append(reflect.ValueOf(a2[ii]),e...))
+		reflect.ValueOf(a2[ii]).Elem().Set(reflect.Append(reflect.ValueOf(a2[ii]), e...))
 	}
 	return nil
 }
@@ -159,7 +159,7 @@ func GetRow(c *gin.Context, table string, data interface{}, where map[string]int
 	var values []interface{}
 
 	//获取data结构体信息
-	keys,points,a1,a2:=getKeysAndPointers(data)
+	keys, points, a1, a2 := getKeysAndPointers(data)
 
 	//构造查询语句
 	for k, v := range where {
@@ -177,49 +177,49 @@ func GetRow(c *gin.Context, table string, data interface{}, where map[string]int
 		return err
 	}
 
-	return turnSliceBack(c,a1,a2)
+	return turnSliceBack(c, a1, a2)
 }
 
-func Get(c *gin.Context,table string,data interface{},where map[string]interface{})error{
+func Get(c *gin.Context, table string, data interface{}, where map[string]interface{}) error {
 	var wh []string
 	var keys []string
 	var values []interface{}
 
 	//取字段名
 	{
-		g:=reflect.ValueOf(data).Elem().Index(0)
-		keys=getKeys(reflect.TypeOf(g.Interface()))
+		g := reflect.ValueOf(data).Elem().Index(0)
+		keys = getKeys(reflect.TypeOf(g.Interface()))
 	}
 
-	for k,v:=range where{
-		wh=append(wh,k+"=?")
-		values=append(values,v)
+	for k, v := range where {
+		wh = append(wh, k+"=?")
+		values = append(values, v)
 	}
 	var w string
-	if len(where)!=0{
-		w=fmt.Sprintf("WHERE %s",strings.Join(wh,","))
+	if len(where) != 0 {
+		w = fmt.Sprintf("WHERE %s", strings.Join(wh, ","))
 	}
 	SQL := fmt.Sprintf("SELECT %s FROM %s %s", strings.Join(keys, ","), table, w)
-	if rows,err:=DB.Query(SQL,values...);err!=nil{
-		er(c,err)
+	if rows, err := DB.Query(SQL, values...); err != nil {
+		er(c, err)
 		return err
-	}else{
-		for t:=1;rows.Next();t++{
-			e:=reflect.ValueOf(data).Elem().Index(0).Interface()
-			_,g,a1,a2:=getKeysAndPointers(&e)
-			if err:=rows.Scan(g...);err!=nil{
-				er(c,err)
+	} else {
+		for t := 1; rows.Next(); t++ {
+			e := reflect.ValueOf(data).Elem().Index(0).Interface()
+			_, g, a1, a2 := getKeysAndPointers(&e)
+			if err := rows.Scan(g...); err != nil {
+				er(c, err)
 				return err
 			}
 			//数组还原
-			if err:=turnSliceBack(c,a1,a2);err!=nil{
+			if err := turnSliceBack(c, a1, a2); err != nil {
 				return err
 			}
 
-			if reflect.ValueOf(data).Elem().Len()<=t{
-				reflect.ValueOf(data).Elem().Index(t-1).Set(reflect.ValueOf(e))
-			}else{
-				reflect.Append(reflect.ValueOf(data).Elem(),reflect.ValueOf(e))
+			if reflect.ValueOf(data).Elem().Len() <= t {
+				reflect.ValueOf(data).Elem().Index(t - 1).Set(reflect.ValueOf(e))
+			} else {
+				reflect.Append(reflect.ValueOf(data).Elem(), reflect.ValueOf(e))
 			}
 		}
 	}
@@ -236,7 +236,7 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 	{ //取字段名
 		limit = reflect.ValueOf(data).Elem().Len()
 		j := reflect.TypeOf(reflect.ValueOf(data).Elem().Index(0).Interface())
-		keys=getKeys(j)
+		keys = getKeys(j)
 	}
 
 	for k, v := range where {
@@ -245,8 +245,8 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 	}
 	page = (page - 1) * limit
 	var w string
-	if len(wh)!=0{//应对不需要where的情况
-		w="WHERE "+strings.Join(wh, ",")
+	if len(wh) != 0 { //应对不需要where的情况
+		w = "WHERE " + strings.Join(wh, ",")
 	}
 	SQL := fmt.Sprintf("SELECT %s FROM %s %s limit %d,%d", strings.Join(keys, ","), table, w, page, page+limit)
 	rows, err := DB.Query(SQL, values...)
@@ -265,9 +265,9 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 		//取指针
 		var points []interface{}
 		o := reflect.ValueOf(data).Elem().Index(i).Interface()
-		_,points,b1,b2:=getKeysAndPointers(&o)
-		a1=append(a1,b1...)
-		a2=append(a2,b2...)
+		_, points, b1, b2 := getKeysAndPointers(&o)
+		a1 = append(a1, b1...)
+		a2 = append(a2, b2...)
 
 		//导入数据
 		if err := rows.Scan(points...); err != nil {
@@ -285,5 +285,5 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 		reflect.ValueOf(data).Elem().SetLen(i)
 	}
 
-	return turnSliceBack(c,a1,a2)
+	return turnSliceBack(c, a1, a2)
 }

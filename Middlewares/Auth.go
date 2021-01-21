@@ -6,17 +6,18 @@ import (
 	"strings"
 )
 
-type auth struct {}
+type auth struct{}
+
 var Auth auth
 
-func (* auth)Main(c *gin.Context){//鉴权中间件
-	sToken,err:=c.Cookie("token")
-	if err!=nil||sToken==""{//未登录
-		if c.FullPath()==`/api/login`||c.FullPath()==`/api/register`{//特殊入口免鉴权
+func (*auth) Main(c *gin.Context) { //鉴权中间件
+	sToken, err := c.Cookie("token")
+	if err != nil || sToken == "" { //未登录
+		if c.FullPath() == `/api/login` || c.FullPath() == `/api/register` { //特殊入口免鉴权
 			c.Next()
 			return
 		}
-		Modules.CallBack.Error(c,107)
+		Modules.CallBack.Error(c, 107)
 		return
 	}
 
@@ -24,28 +25,28 @@ func (* auth)Main(c *gin.Context){//鉴权中间件
 	var claims *Modules.JwtDATA
 	{
 		var err error
-		if claims,err=Modules.Jwt.Decode(c,sToken);err!=nil{
-			Modules.Cookie.RemoveCookie(c,"token")
+		if claims, err = Modules.Jwt.Decode(c, sToken); err != nil {
+			Modules.Cookie.RemoveCookie(c, "token")
 			return
 		}
 	}
 
 	//传递登录者username和role
-	c.Set("username",claims.Username)
-	c.Set("role",claims.Role)
+	c.Set("username", claims.Username)
+	c.Set("role", claims.Role)
 
 	//user权限
-	if claims.Role!="admin" {
-		switch{
-		case "/api/user/" + claims.Username == c.Request.RequestURI:
+	if claims.Role != "admin" {
+		switch {
+		case "/api/user/"+claims.Username == c.Request.RequestURI:
 			fallthrough
-		case c.Request.Method=="GET"&&c.Request.RequestURI[0:9]=="/api/biz/"://允许biz GET
+		case c.Request.Method == "GET" && c.Request.RequestURI[0:9] == "/api/biz/": //允许biz GET
 			fallthrough
-		case strings.HasPrefix(c.FullPath(),"/api/v3/")://公共api
+		case strings.HasPrefix(c.FullPath(), "/api/v3/"): //公共api
 			c.Next()
 			return
 		}
-		Modules.CallBack.Error(c,108)
+		Modules.CallBack.Error(c, 108)
 		return
 	}
 	c.Next()

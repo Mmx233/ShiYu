@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func routerPublic(G *gin.RouterGroup){
-	G.POST("/login",Controllers.Public.Login)//登录
-	G.POST("/register",Controllers.Public.Register)//注册
+func routerPublic(G *gin.RouterGroup) {
+	G.POST("/login", Controllers.Public.Login)       //登录
+	G.POST("/register", Controllers.Public.Register) //注册
 }

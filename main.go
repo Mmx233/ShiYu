@@ -5,7 +5,7 @@ import (
 	"Mmx/Service"
 )
 
-func main(){
+func main() {
 	Service.InitDatabase()
 	Router.InitRouter()
 }
