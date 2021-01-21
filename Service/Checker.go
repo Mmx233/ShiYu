@@ -26,6 +26,12 @@ func (*check)BizExist(id uint)bool{
 	return temp
 }
 
+func (*check)MenuExist(id uint)bool{
+	var temp bool
+	DB.QueryRow("SELECT 1 FROM biz_menu WHERE id=?",id).Scan(&temp)
+	return temp
+}
+
 func (*check)Password(c *gin.Context,Role string,UserName string,PassWord string)bool{//登陆时的核对密码是否正确
 	type p struct {
 		PassWord string

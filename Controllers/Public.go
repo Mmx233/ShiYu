@@ -11,12 +11,11 @@ type public struct{}
 var Public public
 
 func (*public) Login(c *gin.Context) {
-	type loginForm struct {
+	var form struct {
 		Role     string `form:"role" binding:"required"`
 		UserName string `form:"username" binding:"required,max=19"`
 		PassWord string `form:"password" binding:"required"`
 	}
-	var form loginForm
 	if !Modules.Tool.BindForm(c, &form) {
 		return
 	}
@@ -40,12 +39,11 @@ func (*public) Login(c *gin.Context) {
 }
 
 func (*public) Register(c *gin.Context) {
-	type registerForm struct {
+	var form struct {
 		UserName string `form:"username" binding:"required,max=19"`
 		PassWord string `form:"password" binding:"required"`
 		Name     string `form:"name" binding:"required"`
 	}
-	var form registerForm
 	if !Modules.Tool.BindForm(c, &form) {
 		return
 	}

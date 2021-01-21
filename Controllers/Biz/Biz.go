@@ -32,11 +32,10 @@ type bizData struct {
 }
 
 func (*biz) ListBiz(c *gin.Context) {
-	type listForm struct {
+	var form struct {
 		Limit uint `form:"limit" binding:"required,min=1"`
 		Page uint `form:"page" binding:"required,min=1"`
 	}
-	var form listForm
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -51,10 +50,9 @@ func (*biz) ListBiz(c *gin.Context) {
 }
 
 func (*biz)Information(c *gin.Context){
-	type infoForm struct {
+	var form struct {
 		Id uint `form:"id" binding:"required,min=1"`
 	}
-	var form infoForm
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -73,13 +71,12 @@ func (*biz)Information(c *gin.Context){
 }
 
 func (*biz)New(c *gin.Context){
-	type newBizForm struct {
+	var form struct {
 		Name string `form:"name" binding:"required"`
 		Pic []string `form:"pic" binding:"required"`
 		Address string `form:"address" binding:"required"`
 		CatAddressId uint `form:"cat_address_id" binding:"required"`
 	}
-	var form newBizForm
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -118,22 +115,21 @@ func (*biz)New(c *gin.Context){
 }
 
 func (*biz)Renew(c *gin.Context){
-	type renewBizForm struct {
-		Id uint `form:"id" binding:"required"`
-		Name string `form:"name" binding:"required"`
-		Pic []string `form:"pic" binding:"required"`
-		Grade uint `form:"grade"`
-		GradeWeight uint `form:"grade_weight"`
-		Address string `form:"address" binding:"required"`
-		CatAddressId uint `form:"cat_address_id" binding:"required"`
-		Husk uint `form:"husk"`
-		Share uint `form:"share"`
-		Favorite uint `form:"favorite"`
-		Dislike uint `form:"dislike"`
-		MaxPrice uint `form:"max_price"`
-		MinPrice uint `form:"min_price"`
+	var form struct {
+		Id           uint     `form:"id" binding:"required"`
+		Name         string   `form:"name" binding:"required"`
+		Pic          []string `form:"pic" binding:"required"`
+		Grade        uint     `form:"grade"`
+		GradeWeight  uint     `form:"grade_weight"`
+		Address      string   `form:"address" binding:"required"`
+		CatAddressId uint     `form:"cat_address_id" binding:"required"`
+		Husk         uint     `form:"husk"`
+		Share        uint     `form:"share"`
+		Favorite     uint     `form:"favorite"`
+		Dislike      uint     `form:"dislike"`
+		MaxPrice     uint     `form:"max_price"`
+		MinPrice     uint     `form:"min_price"`
 	}
-	var form renewBizForm
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -175,12 +171,11 @@ func (*biz)Renew(c *gin.Context){
 }
 
 func (*biz)Change(c *gin.Context){
-	type Form struct {
+	var form struct {
 		Id uint `form:"id" binding:"required"`
 		Target string `form:"target" binding:"required"`
 		Value interface{} `form:"value"  binding:"required"`
 	}
-	var form Form
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -191,6 +186,10 @@ func (*biz)Change(c *gin.Context){
 	form.Target = strings.ToLower(form.Target)
 	switch form.Target {
 	case "name":
+		if _,ok:=form.Value.(string);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
 		if !Modules.Checker.Name(c,form.Value.(string)){
 			return
 		}
@@ -198,29 +197,55 @@ func (*biz)Change(c *gin.Context){
 			return
 		}
 	case "pic":
+		if _,ok:=form.Value.([]string);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
 		if !Modules.Checker.Pic(c,form.Value.([]string)){
 			return
 		}
 		form.Value,_=json.Marshal(form.Value)
 	case "cat_address_id":
+		if _,ok:=form.Value.(uint);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
 		if !Service.Checker.CatIdExist("address",form.Value.(uint)){
 			return
 		}
 	case "grade":
+		if _,ok:=form.Value.(uint);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
 		if !Modules.Checker.Grade(c,form.Value.(uint)){
 			return
 		}
 	case "address":
+		if _,ok:=form.Value.(string);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
 		if !Modules.Checker.Address(c,form.Value.(string)){
 			return
 		}
 	case "grade_weight":
+		fallthrough
 	case "max_price":
+		fallthrough
 	case "min_price":
+		fallthrough
 	case "husk":
+		fallthrough
 	case "share":
+		fallthrough
 	case "favorite":
+		fallthrough
 	case "dislike":
+		if _,ok:=form.Value.(uint);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
 	default:
 		Modules.CallBack.Error(c, 114)
 		return
@@ -236,10 +261,9 @@ func (*biz)Change(c *gin.Context){
 }
 
 func (*biz)Delete(c *gin.Context){
-	type Form struct {
+	var form struct {
 		Id uint `form:"id" binding:"required"`
 	}
-	var form Form
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}

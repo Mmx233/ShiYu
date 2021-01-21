@@ -12,11 +12,10 @@ var Admin admin
 
 func (*admin)NewAccount(c *gin.Context){
 	username:=c.Param("username")
-	type Form struct {
+	var form struct {
 		PassWord string `form:"password" binding:"required"`
 		Name string `form:"name" binding:"required"`
 	}
-	var form Form
 	if !Modules.Tool.BindForm(c, &form){
 		return
 	}
@@ -59,12 +58,11 @@ func (*admin)Information(c *gin.Context){
 
 func (*admin)Renew(c * gin.Context){
 	username:=c.Param("username")
-	type renewForm struct {
+	var form struct {
 		UserName string `form:"username" binding:"required,max=19"`
 		PassWord string `form:"password" binding:"required"`
 		Name string `form:"name" binding:"required"`
 	}
-	var form renewForm
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -93,11 +91,10 @@ func (*admin)Renew(c * gin.Context){
 
 func (*admin)Change(c *gin.Context){
 	username:=c.Param("username")
-	type changeForm struct {
+	var form struct {
 		Target string `form:"target" binding:"required"`
 		Value string `form:"value"  binding:"required"`
 	}
-	var form changeForm
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}

@@ -39,13 +39,12 @@ func (*user) Information(c *gin.Context) {
 
 func (*user) Renew(c *gin.Context) {
 	username := c.Param("username")
-	type renewForm struct {
+	var form struct {
 		UserName  string `form:"username" binding:"required,max=19"`
 		PassWord  string `form:"password" binding:"required"`
 		Name      string `form:"name" binding:"required"`
 		BigPlayer bool   `form:"big_player"`
 	}
-	var form renewForm
 	if !Modules.Tool.BindForm(c, &form) {
 		return
 	}
@@ -74,17 +73,20 @@ func (*user) Renew(c *gin.Context) {
 
 func (*user) Change(c *gin.Context) {
 	username := c.Param("username")
-	type changeForm struct {
+	var form struct {
 		Target string `form:"target" binding:"required"`
 		Value  interface{} `form:"value"  binding:"required"`
 	}
-	var form changeForm
 	if !Modules.Tool.BindForm(c, &form) {
 		return
 	}
 	form.Target = strings.ToLower(form.Target)
 	switch form.Target {
 	case "username":
+		if _,ok:=form.Value.(string);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
 		if !Modules.Checker.UserName(c, form.Value.(string)) {
 			return
 		}
@@ -100,6 +102,10 @@ func (*user) Change(c *gin.Context) {
 			return
 		}
 	case "password":
+		if _,ok:=form.Value.(string);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
 		if !Modules.Checker.Password(c, form.Value.(string)) {
 			return
 		}
@@ -113,6 +119,10 @@ func (*user) Change(c *gin.Context) {
 			return
 		}
 	case "name":
+		if _,ok:=form.Value.(string);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
 		if !Modules.Checker.Name(c, form.Value.(string)) {
 			return
 		}
@@ -127,7 +137,11 @@ func (*user) Change(c *gin.Context) {
 			return
 		}
 	case "big_player":
-		if a, b := c.Get("role"); b != false && a.(string) == "admin" {
+		if _,ok:=form.Value.(bool);!ok{
+			Modules.CallBack.Error(c,101)
+			return
+		}
+		if a, b := c.Get("role"); b && a.(string) == "admin" {
 			if _, err := Service.Update(c, "user", map[string]interface{}{
 				"big_player": form.Value.(bool),
 			}, map[string]interface{}{

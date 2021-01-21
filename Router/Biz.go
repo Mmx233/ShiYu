@@ -17,7 +17,12 @@ func routerBiz(G *gin.RouterGroup) {
 	//菜单
 	menu:=G.Group("/menu")
 	menu.GET("/",Controllers.Biz.Menu.Information)//根据商家获取菜单
-	menu.GET("/cat")//根据分类获取菜单
+	menu.GET("/cat",Controllers.Biz.Menu.InformationForCat)//根据分类获取菜单
+	menu.GET("/favorites",Controllers.Biz.Menu.InformationForFavorites)//获取favorite的菜单
+	menu.POST("/",Controllers.Biz.Menu.New)//新建菜单
+	menu.PUT("/",Controllers.Biz.Menu.Renew)//修改菜单
+	menu.PATCH("/",Controllers.Biz.Menu.Change)//修改菜单部分
+	menu.DELETE("/",Controllers.Biz.Menu.Delete)//删除菜单
 
 
 	//分类
@@ -27,6 +32,9 @@ func routerBiz(G *gin.RouterGroup) {
 	cat.POST("/",Controllers.Biz.Cat.New)//新增分类
 	cat.PUT("/",Controllers.Biz.Cat.Renew)//修改分类
 	cat.DELETE("/",Controllers.Biz.Cat.Delete)//删除分类
+
+	//favorite部分
+
 
 	//搜索
 	//search:=G.Group("/search")

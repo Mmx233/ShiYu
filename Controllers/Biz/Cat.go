@@ -9,13 +9,12 @@ import (
 type cat struct {}
 
 func (*cat)ListContent(c *gin.Context){
-	type Form struct {
+	var form struct {
 		Cat string `form:"cat" binding:"required"`
 		Id uint `form:"id" binding:"required"`
 		Limit uint `form:"limit" binding:"required,min=1"`
 		Page uint `form:"page" binding:"required,min=1"`
 	}
-	var form Form
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -41,10 +40,9 @@ func (*cat)ListContent(c *gin.Context){
 }
 
 func (*cat)List(c *gin.Context){
-	type Form struct {
+	var form struct {
 		Cat string `form:"cat" binding:"required"`
 	}
-	var form Form
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -63,11 +61,10 @@ func (*cat)List(c *gin.Context){
 }
 
 func (*cat)New(c *gin.Context){
-	type newCatFORM struct {
+	var form struct {
 		Cat string `form:"cat" binding:"required"`
 		Name string `form:"name" binding:"required"`
 	}
-	var form newCatFORM
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -86,12 +83,11 @@ func (*cat)New(c *gin.Context){
 }
 
 func (*cat)Renew(c *gin.Context){
-	type newCatFORM struct {
+	var form struct {
 		Cat string `form:"cat" binding:"required"`
 		Id uint `form:"id" binding:"required"`
 		Name string `form:"name" binding:"required"`
 	}
-	var form newCatFORM
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
@@ -113,11 +109,10 @@ func (*cat)Renew(c *gin.Context){
 }
 
 func (*cat)Delete(c *gin.Context){
-	type newCatFORM struct {
+	var form struct {
 		Cat string `form:"cat" binding:"required"`
 		Id uint `form:"id" binding:"required"`
 	}
-	var form newCatFORM
 	if !Modules.Tool.BindForm(c,&form){
 		return
 	}
