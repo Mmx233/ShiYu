@@ -16,8 +16,8 @@ import (
 var DB *sql.DB
 
 func er(c *gin.Context, e error) { //向响应体写入报错json
-	fmt.Println(e) //DEMO
 	if e != nil && c != nil {
+		fmt.Println(e) //DEMO
 		Modules.CallBack.Error(c, 102)
 	}
 }
@@ -89,7 +89,7 @@ func Update(c *gin.Context, table string, value map[string]interface{}, where ma
 		}
 	}
 	for w, v := range where {
-		wh = append(wh, w)
+		wh = append(wh, w+"=?")
 		values = append(values, v)
 	}
 	SQL := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, strings.Join(keys, ","), strings.Join(wh, ","))
@@ -102,7 +102,7 @@ func Delete(c *gin.Context, table string, where map[string]interface{}) (int64, 
 	var wh []string
 	var values []interface{}
 	for w, v := range where {
-		wh = append(wh, w)
+		wh = append(wh, w+"=?")
 		values = append(values, v)
 	}
 	SQL := fmt.Sprintf("DELETE FROM %s WHERE %s", table, strings.Join(wh, ","))
@@ -121,7 +121,7 @@ func getKeys(v reflect.Type) []string {
 			keys = append(keys, v.Field(i).Tag.Get("json"))
 			continue
 		}
-		keys = append(keys, strings.ToLower(v.Name()))
+		keys = append(keys, strings.ToLower(v.Field(i).Name))
 	}
 	return keys
 }
@@ -144,6 +144,7 @@ func getKeysAndPointers(d interface{}) ([]string, []interface{}, []*string, []in
 			pointers = append(pointers, &s)
 			a1 = append(a1, &s)
 			a2 = append(a2, f.Field(i).Addr().Interface())
+			continue
 		}
 		pointers = append(pointers, f.Field(i).Addr().Interface())
 	}
@@ -153,22 +154,19 @@ func getKeysAndPointers(d interface{}) ([]string, []interface{}, []*string, []in
 func turnSliceBack(c *gin.Context, a1 []*string, a2 []interface{}) error {
 	for ii, v := range a1 {
 		var temp interface{}
-		if strings.Contains(reflect.TypeOf(a2[ii]).Elem().String(), "\"") {
-			temp = make([]string, 0)
+		if strings.Contains(*v, "\"") {
+			var c []string
+			temp = &c
 		} else {
-			temp = make([]uint64, 0)
+			var c []uint
+			temp = &c
 		}
-		if json.Unmarshal([]byte(*v), &temp) != nil {
+		if *v!="" && json.Unmarshal([]byte(*v), temp) != nil {
 			err := errors.New("未知错误-解码失败")
 			er(c, err)
 			return err
 		}
-		e := make([]reflect.Value, 0)
-		q := reflect.ValueOf(temp)
-		for iii := 0; iii < q.NumField(); iii++ {
-			e = append(e, q.Field(iii))
-		}
-		reflect.ValueOf(a2[ii]).Elem().Set(reflect.Append(reflect.ValueOf(a2[ii]), e...))
+		reflect.ValueOf(a2[ii]).Elem().Set(reflect.ValueOf(temp).Elem())
 	}
 	return nil
 }

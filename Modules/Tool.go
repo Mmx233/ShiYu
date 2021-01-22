@@ -39,7 +39,7 @@ func (*tool) MakeSalt(PassWord string) string {
 
 func (*tool) BindForm(c *gin.Context, f interface{}) bool {
 	if err := c.ShouldBind(f); err != nil {
-		CallBack.ErrorWithErr(c, 102, err)
+		CallBack.ErrorWithErr(c, 101, err)
 		return false
 	}
 	return true

@@ -267,7 +267,11 @@ func (*fav) Make(c *gin.Context) {
 	var form struct {
 		Id uint `form:"id" binding:"required"`
 	}
-	if !Modules.Checker.Form(c, &form) {
+	if !Modules.Tool.BindForm(c, &form) {
+		return
+	}
+	if !Service.Checker.MenuExist(form.Id){
+		Modules.CallBack.Error(c,123)
 		return
 	}
 	var fav []uint
@@ -276,18 +280,7 @@ func (*fav) Make(c *gin.Context) {
 		Modules.CallBack.Error(c, 125)
 		return
 	}
-	for i, v := range fav {
-		if v == form.Id {
-			if i == len(fav)-1 {
-				fav = fav[:len(fav)-2]
-			} else if i == 0 {
-				fav = fav[1:]
-			} else {
-				fav = append(fav[:i-1], fav[i+1:]...)
-			}
-			break
-		}
-	}
+	fav = append(fav, form.Id)
 	if _, err := Service.Update(c, "user", map[string]interface{}{
 		"favorites": fav,
 	}, map[string]interface{}{
@@ -302,7 +295,7 @@ func (*fav) Cancel(c *gin.Context) {
 	var form struct {
 		Id uint `form:"id" binding:"required"`
 	}
-	if !Modules.Checker.Form(c, &form) {
+	if !Modules.Tool.BindForm(c, &form) {
 		return
 	}
 	var fav []uint
@@ -311,7 +304,22 @@ func (*fav) Cancel(c *gin.Context) {
 		Modules.CallBack.Error(c, 124)
 		return
 	}
-	fav = append(fav, form.Id)
+	for i, v := range fav {
+		if v == form.Id {
+			if i == len(fav)-1 {
+				if i!=0 {
+					fav = fav[:len(fav)-2]
+				}else{
+					fav=make([]uint,0)
+				}
+			} else if i == 0 {
+				fav = fav[1:]
+			} else {
+				fav = append(fav[:i-1], fav[i+1:]...)
+			}
+			break
+		}
+	}
 	if _, err := Service.Update(c, "user", map[string]interface{}{
 		"favorites": fav,
 	}, map[string]interface{}{

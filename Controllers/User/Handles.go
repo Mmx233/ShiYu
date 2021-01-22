@@ -55,7 +55,15 @@ func (*user) Renew(c *gin.Context) {
 		Modules.CallBack.Error(c, 109)
 		return
 	}
+	if !Service.Checker.AccountExist("user",username){
+		Modules.CallBack.Error(c,111)
+		return
+	}
 	if !Service.Checker.Name(c, "user", username, form.Name) {
+		return
+	}
+	if username != form.UserName && Service.Checker.AccountExist("user",form.UserName){
+		Modules.CallBack.Error(c,109)
 		return
 	}
 	salt := Modules.Tool.MakeSalt(form.PassWord)

@@ -29,12 +29,6 @@ func (*public) Login(c *gin.Context) {
 	if !Service.Checker.Password(c, form.Role, form.UserName, form.PassWord) {
 		return
 	}
-	//登陆成功
-	if token, err := Modules.Jwt.Encode(c, form.Role, form.UserName); err != nil {
-		return
-	} else {
-		Modules.Cookie.SetCookie(c, "token", token)
-	}
 	//token生成
 	token,err:=Modules.Jwt.Encode(c,form.Role,form.UserName)
 	if err!=nil{

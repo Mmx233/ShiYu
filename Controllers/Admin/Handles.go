@@ -70,8 +70,13 @@ func (*admin) Renew(c *gin.Context) {
 	if !Modules.Checker.Form(c, &form) {
 		return
 	}
-	if username != form.UserName && !Service.Checker.AccountExist("admin", form.UserName) {
-		Modules.CallBack.Error(c, 111)
+	if !Service.Checker.AccountExist("admin",username){
+		Modules.CallBack.Error(c,111)
+		return
+	}
+	if username != form.UserName && Service.Checker.AccountExist("admin", form.UserName) {
+		Modules.CallBack.Error(c, 109)
+		return
 	}
 	if !Service.Checker.Name(c, "admin", username, form.Name) {
 		return
@@ -97,6 +102,10 @@ func (*admin) Change(c *gin.Context) {
 		Value  string `form:"value"  binding:"required"`
 	}
 	if !Modules.Tool.BindForm(c, &form) {
+		return
+	}
+	if !Service.Checker.AccountExist("admin",username){
+		Modules.CallBack.Error(c,111)
 		return
 	}
 	form.Target = strings.ToLower(form.Target)

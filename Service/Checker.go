@@ -35,8 +35,8 @@ func (*check) MenuExist(id uint) bool {
 
 func (*check) Password(c *gin.Context, Role string, UserName string, PassWord string) bool { //登陆时的核对密码是否正确
 	type p struct {
-		PassWord string `json:"password"`
-		Salt     string `json:"salt"`
+		PassWord string
+		Salt     string
 	}
 	var P p
 	if GetRow(c, Role, &P, map[string]interface{}{
@@ -80,12 +80,12 @@ func (*check) Name(c *gin.Context, role string, username string, name string) bo
 func (*check) IsFav(c *gin.Context, id uint) (bool, []uint) {
 	//特殊函数，接收了c但是不写报错
 	var u struct {
-		fav []uint `json:"favorites"`
+		Fav []uint `json:"favorites"`
 	}
 	if GetRow(nil, "user", &u, map[string]interface{}{
 		"username": c.GetString("username"),
 	}) != nil {
 		return false, nil
 	}
-	return Modules.Tool.Find(u.fav, id), u.fav
+	return Modules.Tool.Find(u.Fav, id), u.Fav
 }
