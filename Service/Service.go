@@ -16,6 +16,7 @@ import (
 var DB *sql.DB
 
 func er(c *gin.Context, e error) { //向响应体写入报错json
+	fmt.Println(e)//DEMO
 	if e != nil && c !=nil {
 		Modules.CallBack.Error(c, 102)
 	}

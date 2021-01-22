@@ -10,7 +10,6 @@ type cat struct{}
 
 func (*cat) ListContent(c *gin.Context) {
 	var form struct {
-		Cat   string `form:"cat" binding:"required"`
 		Id    uint   `form:"id" binding:"required"`
 		Limit uint   `form:"limit" binding:"required,min=1"`
 		Page  uint   `form:"page" binding:"required,min=1"`
@@ -21,20 +20,16 @@ func (*cat) ListContent(c *gin.Context) {
 	if !Modules.Checker.Form(c, &form) {
 		return
 	}
-	if !Service.Checker.CatIdExist(form.Cat, form.Id) {
+	if !Service.Checker.CatIdExist("address", form.Id) {
 		Modules.CallBack.Error(c, 119)
 		return
 	}
 	var data interface{}
-	if form.Cat == "address" {
-		data = make([]bizData, form.Limit)
-		if Service.GetWithLimit(c, "biz", &data, map[string]interface{}{
-			"cat_address_id": form.Id,
-		}, int(form.Page)) != nil {
-			return
-		}
-	} else {
-		//DEMO 菜单获取
+	data = make([]bizData, form.Limit)
+	if Service.GetWithLimit(c, "biz", &data, map[string]interface{}{
+		"cat_address_id": form.Id,
+	}, int(form.Page)) != nil {
+		return
 	}
 	Modules.CallBack.Success(c, &data)
 }
@@ -123,6 +118,7 @@ func (*cat) Delete(c *gin.Context) {
 		Modules.CallBack.Error(c, 119)
 		return
 	}
+	//DEMO 删除商家
 	if _, err := Service.Delete(c, "cat_"+form.Cat, map[string]interface{}{
 		"id": form.Id,
 	}); err != nil {

@@ -10,7 +10,7 @@ func InitRouter() {
 	G := gin.Default()
 
 	//启动防洪协程
-	Middlewares.Sec.InitIpLogger()
+	go Middlewares.Sec.InitIpLogger()
 
 	//中间件使用
 	G.Use(Middlewares.Sec.Main)  //安全中间件
@@ -24,4 +24,6 @@ func InitRouter() {
 	routerUser(E.Group("/user"))   //用户
 	routerBiz(E.Group("/biz"))     //商户
 	routerPublic(E.Group("/v3"))   //公共接口
+
+	G.Run(":1986")
 }

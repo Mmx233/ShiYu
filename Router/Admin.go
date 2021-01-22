@@ -13,4 +13,6 @@ func routerAdmin(G *gin.RouterGroup) {
 	G.PUT("/:username", Controllers.Admin.Renew)       //修改信息
 	G.PATCH("/:username", Controllers.Admin.Change)    //修改指定信息
 	G.DELETE("/:username", Controllers.Admin.Delete)   //删除账号
+
+	//DEMO 账户列出
 }

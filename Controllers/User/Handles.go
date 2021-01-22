@@ -170,7 +170,6 @@ func (*user) Delete(c *gin.Context) {
 	}); err != nil {
 		return
 	}
-	//删除头像图片
-	//DEMO
+	//DEMO 删除头像图片
 	Modules.CallBack.Default(c)
 }

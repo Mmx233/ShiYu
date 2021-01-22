@@ -3,6 +3,7 @@ package Middlewares
 import (
 	"Mmx/Modules"
 	"github.com/gin-gonic/gin"
+	"strings"
 	"time"
 )
 
@@ -33,7 +34,7 @@ func (*secure) InitIpLogger() {
 
 func (*secure) Main(c *gin.Context) {
 	//防盗链
-	if len(c.GetHeader("Referer")) < 29 || c.GetHeader("Referer")[8:28] != "hackweek.multmax.top" {
+	if c.GetHeader("Referer") != "" && strings.HasPrefix(c.GetHeader("Referer"),"https://shiyu.icu") {
 		Modules.CallBack.Error(c, 302)
 		return
 	}
@@ -45,7 +46,7 @@ func (*secure) Main(c *gin.Context) {
 	} else if ipLogger[c.ClientIP()] >= 240 { //每分钟超240次封禁IP
 		ipLogger[c.ClientIP()] = -1 //使被拦截
 		go func(ip string) { //截除拦截
-			time.Sleep(time.Hour / 2) //半小时后截除
+			time.Sleep(time.Hour / 2) //半小时后解除
 			delete(ipLogger, ip)
 		}(c.ClientIP())
 		Modules.CallBack.Error(c, 303)

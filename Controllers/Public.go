@@ -63,6 +63,7 @@ func (*public) Register(c *gin.Context) {
 		"username":   form.UserName,
 		"password":   Modules.Tool.EncodePassWord(form.PassWord, salt),
 		"salt":       salt,
+		"name": form.Name,
 		"head_img":   "n",
 		"big_player": 0,
 		"test_count": 0,

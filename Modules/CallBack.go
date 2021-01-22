@@ -89,7 +89,7 @@ func (*callBack) Success(c *gin.Context, data interface{}) {
 
 func (*callBack) Error(c *gin.Context, code int) {
 	c.AsciiJSON(errCode[code], message{
-		Status: "Error",
+		Status: "error",
 		Code:   code,
 		Data:   map[int]string{},
 		Msg:    errMsg[code],
@@ -99,7 +99,7 @@ func (*callBack) Error(c *gin.Context, code int) {
 
 func (*callBack) ErrorWithErr(c *gin.Context, code int, err error) {
 	c.AsciiJSON(errCode[code], message{
-		Status: "Error",
+		Status: "error",
 		Code:   code,
 		Data:   map[int]string{},
 		Msg:    err.Error(),
@@ -108,7 +108,7 @@ func (*callBack) ErrorWithErr(c *gin.Context, code int, err error) {
 
 func (*callBack) Default(c *gin.Context) {
 	c.AsciiJSON(200, message{
-		Status: "Success",
+		Status: "success",
 		Code:   200,
 		Data:   map[int]string{},
 		Msg:    "",

@@ -270,6 +270,7 @@ func (*biz) Delete(c *gin.Context) {
 		Modules.CallBack.Error(c, 116)
 		return
 	}
+	//DEMO 删除菜单
 	if _, err := Service.Delete(c, "biz", map[string]interface{}{
 		"id": form.Id,
 	}); err != nil {
