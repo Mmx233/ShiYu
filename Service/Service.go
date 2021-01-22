@@ -143,9 +143,9 @@ func getKeysAndPointers(d interface{}) ([]string, []interface{}, []*string, []in
 			var s string
 			pointers = append(pointers, &s)
 			a1 = append(a1, &s)
-			a2 = append(a2, f.Field(i).Addr())
+			a2 = append(a2, f.Field(i).Addr().Interface())
 		}
-		pointers = append(pointers, f.Field(i).Addr())
+		pointers = append(pointers, f.Field(i).Addr().Interface())
 	}
 	return keys, pointers, a1, a2
 }
@@ -185,7 +185,7 @@ func GetRow(c *gin.Context, table string, data interface{}, where map[string]int
 		wh = append(wh, k+"=?")
 		values = append(values, v)
 	}
-	SQL := fmt.Sprintf("SELECT %s FROM %s WHRER %s", strings.Join(keys, ","), table, strings.Join(wh, ","))
+	SQL := fmt.Sprintf("SELECT %s FROM %s WHERE %s", strings.Join(keys, ","), table, strings.Join(wh, ","))
 	row := DB.QueryRow(SQL, values...)
 	if row.Err() != nil {
 		er(c, row.Err())

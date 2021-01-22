@@ -35,8 +35,8 @@ func (*check) MenuExist(id uint) bool {
 
 func (*check) Password(c *gin.Context, Role string, UserName string, PassWord string) bool { //登陆时的核对密码是否正确
 	type p struct {
-		PassWord string
-		Salt     string
+		PassWord string `json:"password"`
+		Salt     string `json:"salt"`
 	}
 	var P p
 	if GetRow(c, Role, &P, map[string]interface{}{

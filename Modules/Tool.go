@@ -29,7 +29,7 @@ func randRune() string {
 }
 
 func (*tool) MakeSalt(PassWord string) string {
-	Len := utf8.RuneCountInString(PassWord)
+	Len := 50-utf8.RuneCountInString(PassWord)
 	var salt string
 	for i := 0; i < Len; i++ {
 		salt += randRune()

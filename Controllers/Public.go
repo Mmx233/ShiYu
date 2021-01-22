@@ -35,7 +35,15 @@ func (*public) Login(c *gin.Context) {
 	} else {
 		Modules.Cookie.SetCookie(c, "token", token)
 	}
-	Modules.CallBack.Default(c)
+	//token生成
+	token,err:=Modules.Jwt.Encode(c,form.Role,form.UserName)
+	if err!=nil{
+		return
+	}
+	data:= map[string]interface{}{
+		"token":token,
+	}
+	Modules.CallBack.Success(c,data)
 }
 
 func (*public) Register(c *gin.Context) {
@@ -72,5 +80,13 @@ func (*public) Register(c *gin.Context) {
 	}); err != nil {
 		return
 	}
-	Modules.CallBack.Default(c)
+	//token生成
+	token,err:=Modules.Jwt.Encode(c,"user",form.UserName)
+	if err!=nil{
+		return
+	}
+	data:= map[string]interface{}{
+		"token":token,
+	}
+	Modules.CallBack.Success(c,data)
 }

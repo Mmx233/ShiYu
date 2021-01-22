@@ -11,8 +11,8 @@ type auth struct{}
 var Auth auth
 
 func (*auth) Main(c *gin.Context) { //鉴权中间件
-	sToken, err := c.Cookie("token")
-	if err != nil || sToken == "" { //未登录
+	sToken:= c.GetHeader("authorization")
+	if sToken == "" { //未登录
 		if c.FullPath() == `/api/v3/login` || c.FullPath() == `/api/v3/register` { //特殊入口免鉴权
 			c.Next()
 			return
@@ -26,7 +26,6 @@ func (*auth) Main(c *gin.Context) { //鉴权中间件
 	{
 		var err error
 		if claims, err = Modules.Jwt.Decode(c, sToken); err != nil {
-			Modules.Cookie.RemoveCookie(c, "token")
 			return
 		}
 	}
