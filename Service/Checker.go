@@ -77,15 +77,15 @@ func (*check) Name(c *gin.Context, role string, username string, name string) bo
 	return true
 }
 
-func (*check)IsFav(c *gin.Context,id uint) (bool,[]uint){
+func (*check) IsFav(c *gin.Context, id uint) (bool, []uint) {
 	//特殊函数，接收了c但是不写报错
-	var u struct{
+	var u struct {
 		fav []uint `json:"favorites"`
 	}
-	if GetRow(nil,"user",&u, map[string]interface{}{
-		"username":c.GetString("username"),
-	})!=nil{
-		return false,nil
+	if GetRow(nil, "user", &u, map[string]interface{}{
+		"username": c.GetString("username"),
+	}) != nil {
+		return false, nil
 	}
-	return Modules.Tool.Find(u.fav,id),u.fav
+	return Modules.Tool.Find(u.fav, id), u.fav
 }

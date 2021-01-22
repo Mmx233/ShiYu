@@ -10,9 +10,9 @@ type cat struct{}
 
 func (*cat) ListContent(c *gin.Context) {
 	var form struct {
-		Id    uint   `form:"id" binding:"required"`
-		Limit uint   `form:"limit" binding:"required,min=1"`
-		Page  uint   `form:"page" binding:"required,min=1"`
+		Id    uint `form:"id" binding:"required"`
+		Limit uint `form:"limit" binding:"required,min=1"`
+		Page  uint `form:"page" binding:"required,min=1"`
 	}
 	if !Modules.Tool.BindForm(c, &form) {
 		return

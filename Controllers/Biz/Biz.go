@@ -9,8 +9,8 @@ import (
 )
 
 type biz struct {
-	Cat  cat
-	Menu menu
+	Cat    cat
+	Menu   menu
 	Search sear
 }
 

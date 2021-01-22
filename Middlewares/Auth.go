@@ -40,9 +40,9 @@ func (*auth) Main(c *gin.Context) { //鉴权中间件
 		switch {
 		case "/api/user/"+claims.Username == c.Request.RequestURI:
 			fallthrough
-		case strings.HasPrefix(c.FullPath(),"/api/biz/menu/fav/")://用户收藏
+		case strings.HasPrefix(c.FullPath(), "/api/biz/menu/fav/"): //用户收藏
 			fallthrough
-		case c.Request.Method == "GET" && strings.HasPrefix(c.FullPath() , "/api/biz/"): //允许biz GET
+		case c.Request.Method == "GET" && strings.HasPrefix(c.FullPath(), "/api/biz/"): //允许biz GET
 			fallthrough
 		case strings.HasPrefix(c.FullPath(), "/api/v3/"): //公共api
 			c.Next()

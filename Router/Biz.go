@@ -35,13 +35,13 @@ func routerBiz(G *gin.RouterGroup) {
 	cat.DELETE("/", Controllers.Biz.Cat.Delete)       //删除分类
 
 	//favorite
-	fav:=menu.Group("/fav")
-	fav.POST("/",Controllers.Biz.Menu.Fav.Make)//收藏
-	fav.DELETE("/",Controllers.Biz.Menu.Fav.Cancel)//取消收藏
+	fav := menu.Group("/fav")
+	fav.POST("/", Controllers.Biz.Menu.Fav.Make)     //收藏
+	fav.DELETE("/", Controllers.Biz.Menu.Fav.Cancel) //取消收藏
 
 	//搜索
-	search:=G.Group("/search")
-	search.GET("/biz",Controllers.Biz.Search.Biz)//搜索商家
-	search.GET("/menu",Controllers.Biz.Search.Menu)//搜索菜单
-	search.GET("/fav",Controllers.Biz.Search.Fav)//搜索收藏
+	search := G.Group("/search")
+	search.GET("/biz", Controllers.Biz.Search.Biz)   //搜索商家
+	search.GET("/menu", Controllers.Biz.Search.Menu) //搜索菜单
+	search.GET("/fav", Controllers.Biz.Search.Fav)   //搜索收藏
 }

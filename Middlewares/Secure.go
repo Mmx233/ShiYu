@@ -34,7 +34,7 @@ func (*secure) InitIpLogger() {
 
 func (*secure) Main(c *gin.Context) {
 	//防盗链
-	if c.GetHeader("Referer") != "" && strings.HasPrefix(c.GetHeader("Referer"),"https://shiyu.icu") {
+	if c.GetHeader("Referer") != "" && strings.HasPrefix(c.GetHeader("Referer"), "https://shiyu.icu") {
 		Modules.CallBack.Error(c, 302)
 		return
 	}

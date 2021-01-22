@@ -16,15 +16,15 @@ import (
 var DB *sql.DB
 
 func er(c *gin.Context, e error) { //向响应体写入报错json
-	fmt.Println(e)//DEMO
-	if e != nil && c !=nil {
+	fmt.Println(e) //DEMO
+	if e != nil && c != nil {
 		Modules.CallBack.Error(c, 102)
 	}
 }
 
-func erCode(c *gin.Context,code int){
-	if c!=nil{
-		Modules.CallBack.Error(c,code)
+func erCode(c *gin.Context, code int) {
+	if c != nil {
+		Modules.CallBack.Error(c, code)
 	}
 }
 
@@ -59,9 +59,9 @@ func Insert(c *gin.Context, table string, value map[string]interface{}) (int64, 
 		//数组字符串化
 		switch reflect.TypeOf(v).Kind() {
 		case reflect.Slice:
-			temp,_:=json.Marshal(v)
+			temp, _ := json.Marshal(v)
 			//DEMO 应对超长
-			values = append(values,temp)
+			values = append(values, temp)
 		default:
 			values = append(values, v)
 		}
@@ -81,9 +81,9 @@ func Update(c *gin.Context, table string, value map[string]interface{}, where ma
 		//数组字符串化
 		switch reflect.TypeOf(v).Kind() {
 		case reflect.Slice:
-			temp,_:=json.Marshal(v)
+			temp, _ := json.Marshal(v)
 			//DEMO 应对超长
-			values = append(values,temp)
+			values = append(values, temp)
 		default:
 			values = append(values, v)
 		}
@@ -160,7 +160,7 @@ func turnSliceBack(c *gin.Context, a1 []*string, a2 []interface{}) error {
 		}
 		if json.Unmarshal([]byte(*v), &temp) != nil {
 			err := errors.New("未知错误-解码失败")
-			er(c,err)
+			er(c, err)
 			return err
 		}
 		e := make([]reflect.Value, 0)
@@ -298,7 +298,7 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 	}
 	//应对数据不够一页及超出
 	if i == 0 {
-		erCode(c,115)
+		erCode(c, 115)
 		return errors.New("没有更多了")
 	} else if i != limit {
 		reflect.ValueOf(data).Elem().SetLen(i)
