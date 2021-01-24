@@ -46,7 +46,6 @@ func (j *j) Encode(c *gin.Context, role string, username string) (string, error)
 	JToken := jwt.NewWithClaims(jwt.SigningMethodHS256, JwtDATA{
 		Role:     role,
 		Username: username,
-		Ip:       c.ClientIP(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24 * 30).Unix(), // 过期时间
 			Issuer:    "Mmx",                                      // 签发人
