@@ -2,7 +2,9 @@ package Service
 
 import (
 	"Mmx/Modules"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 type check struct{}
@@ -15,9 +17,16 @@ func (*check) AccountExist(role string, username string) bool {
 	return temp
 }
 
-func (*check) NameExist(role string, name string) bool {
+func (*check) NameExist(table string, name string, where map[string]interface{}) bool {
+	var v []string
+	var values []interface{}
+	values=append(values,name)
+	if where!=nil&&len(where)!=0{
+		v,values=Modules.Tool.MakeWhere(where)
+		v[0]=","+v[0]
+	}
 	var temp bool
-	DB.QueryRow("SELECT 1 FROM "+role+" WHERE name=?", name).Scan(&temp)
+	DB.QueryRow(fmt.Sprintf("SELECT 1 FROM "+table+" WHERE name=?%v",strings.Join(v,",")), values...).Scan(&temp)
 	return temp
 }
 
@@ -58,7 +67,7 @@ func (*check) CatIdExist(cat string, id uint) bool {
 }
 
 func (*check) Name(c *gin.Context, role string, username string, name string) bool { //检查昵称是否被占用
-	if Checker.NameExist(role, name) {
+	if Checker.NameExist(role, name,nil) {
 		type temp struct {
 			UserName string
 			Name     string

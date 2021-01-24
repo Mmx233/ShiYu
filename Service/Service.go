@@ -88,10 +88,12 @@ func Update(c *gin.Context, table string, value map[string]interface{}, where ma
 			values = append(values, v)
 		}
 	}
-	for w, v := range where {
-		wh = append(wh, w+"=?")
-		values = append(values, v)
+	{
+		var temp []interface{}
+		wh, temp = Modules.Tool.MakeWhere(where)
+		values = append(values, temp)
 	}
+
 	SQL := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, strings.Join(keys, ","), strings.Join(wh, ","))
 	id, err := Exec(SQL, values...)
 	er(c, err)
@@ -101,10 +103,7 @@ func Update(c *gin.Context, table string, value map[string]interface{}, where ma
 func Delete(c *gin.Context, table string, where map[string]interface{}) (int64, error) {
 	var wh []string
 	var values []interface{}
-	for w, v := range where {
-		wh = append(wh, w+"=?")
-		values = append(values, v)
-	}
+	wh, values = Modules.Tool.MakeWhere(where)
 	SQL := fmt.Sprintf("DELETE FROM %s WHERE %s", table, strings.Join(wh, ","))
 	id, err := Exec(SQL, values...)
 	er(c, err)
@@ -155,7 +154,7 @@ func turnSliceBack(c *gin.Context, a1 []*string, a2 []interface{}) error {
 	for ii, v := range a1 {
 		var temp interface{}
 		fmt.Println(*v)
-		temp=reflect.New(reflect.TypeOf(a2[ii]).Elem()).Interface()
+		temp = reflect.New(reflect.TypeOf(a2[ii]).Elem()).Interface()
 		if *v != "" && json.Unmarshal([]byte(*v), temp) != nil {
 			err := errors.New("未知错误-解码失败")
 			er(c, err)
@@ -174,10 +173,8 @@ func GetRow(c *gin.Context, table string, data interface{}, where map[string]int
 	keys, points, a1, a2 := getKeysAndPointers(data)
 
 	//构造查询语句
-	for k, v := range where {
-		wh = append(wh, k+"=?")
-		values = append(values, v)
-	}
+	wh, values = Modules.Tool.MakeWhere(where) //没有考虑不需要where，因为没用到
+
 	SQL := fmt.Sprintf("SELECT %s FROM %s WHERE %s", strings.Join(keys, ","), table, strings.Join(wh, ","))
 	row := DB.QueryRow(SQL, values...)
 	if row.Err() != nil {
@@ -203,12 +200,9 @@ func Get(c *gin.Context, table string, data interface{}, where map[string]interf
 		keys = getKeys(reflect.TypeOf(g.Interface()))
 	}
 
-	for k, v := range where {
-		wh = append(wh, k+"=?")
-		values = append(values, v)
-	}
+	wh, values = Modules.Tool.MakeWhere(where)
 	var w string
-	if len(where) != 0 {
+	if where != nil && len(where) != 0 {
 		w = fmt.Sprintf("WHERE %s", strings.Join(wh, ","))
 	}
 	SQL := fmt.Sprintf("SELECT %s FROM %s %s", strings.Join(keys, ","), table, w)
@@ -251,13 +245,10 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 		keys = getKeys(j)
 	}
 
-	for k, v := range where {
-		wh = append(wh, k+"=?")
-		values = append(values, v)
-	}
+	wh, values = Modules.Tool.MakeWhere(where)
 	page = (page - 1) * limit
 	var w string
-	if len(wh) != 0 { //应对不需要where的情况
+	if where != nil && len(wh) != 0 { //应对不需要where的情况
 		w = "WHERE " + strings.Join(wh, ",")
 	}
 	SQL := fmt.Sprintf("SELECT %s FROM %s %s limit %d,%d", strings.Join(keys, ","), table, w, page, page+limit)

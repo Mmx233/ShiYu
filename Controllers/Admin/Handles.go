@@ -27,7 +27,7 @@ func (*admin) NewAccount(c *gin.Context) {
 		Modules.CallBack.Error(c, 109)
 		return
 	}
-	if Service.Checker.NameExist("admin", form.Name) {
+	if Service.Checker.NameExist("admin", form.Name,nil) {
 		Modules.CallBack.Error(c, 113)
 		return
 	}

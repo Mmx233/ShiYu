@@ -56,7 +56,7 @@ func (*public) Register(c *gin.Context) {
 		Modules.CallBack.Error(c, 109)
 		return
 	}
-	if Service.Checker.NameExist("user", form.Name) {
+	if Service.Checker.NameExist("user", form.Name,nil) {
 		Modules.CallBack.Error(c, 113)
 		return
 	}

@@ -17,19 +17,19 @@ type biz struct {
 var Biz biz
 
 type bizData struct {
-	Id          uint     `json:"id"`
-	Name        string   `json:"name"`
-	PicUrl      []string `json:"pic_url"`
-	Grade       float32  `json:"grade"`
-	GradeWeight uint     `json:"grade_weight"`
-	MaxPrice    float32  `json:"max_price"`
-	MinPrice    float32  `json:"min_price"`
-	Address     string   `json:"address"`
-	CatAddressId  uint   `json:"cat_address_id"`
-	Husk        uint32   `json:"husk"`
-	Share       uint32   `json:"share"`
-	Favorite    uint     `json:"favorite"`
-	Dislike     uint     `json:"dislike"`
+	Id           uint     `json:"id"`
+	Name         string   `json:"name"`
+	PicUrl       []string `json:"pic_url"`
+	Grade        float32  `json:"grade"`
+	GradeWeight  uint     `json:"grade_weight"`
+	MaxPrice     float32  `json:"max_price"`
+	MinPrice     float32  `json:"min_price"`
+	Address      string   `json:"address"`
+	CatAddressId uint     `json:"cat_address_id"`
+	Husk         uint32   `json:"husk"`
+	Share        uint32   `json:"share"`
+	Favorite     uint     `json:"favorite"`
+	Dislike      uint     `json:"dislike"`
 }
 
 func (*biz) ListBiz(c *gin.Context) {
@@ -41,7 +41,7 @@ func (*biz) ListBiz(c *gin.Context) {
 		return
 	}
 	var data = make([]bizData, form.Limit)
-	if Service.GetWithLimit(c, "biz", &data, map[string]interface{}{}, int(form.Page)) != nil {
+	if Service.GetWithLimit(c, "biz", &data, nil, int(form.Page)) != nil {
 		return
 	}
 	for i := range data { //处理img Url
@@ -74,7 +74,7 @@ func (*biz) Information(c *gin.Context) {
 func (*biz) New(c *gin.Context) {
 	var form struct {
 		Name         string   `form:"name" binding:"required"`
-		Pic          []string `form:"pic" binding:"required"`
+		Pic          []string `form:"pic"`
 		Address      string   `form:"address" binding:"required"`
 		CatAddressId uint     `form:"cat_address_id" binding:"required"`
 	}
@@ -88,7 +88,7 @@ func (*biz) New(c *gin.Context) {
 		Modules.CallBack.Error(c, 119)
 		return
 	}
-	if Service.Checker.NameExist("biz", form.Name) {
+	if Service.Checker.NameExist("biz", form.Name, nil) {
 		Modules.CallBack.Error(c, 120)
 		return
 	}
@@ -144,7 +144,7 @@ func (*biz) Renew(c *gin.Context) {
 		Modules.CallBack.Error(c, 119)
 		return
 	}
-	if Service.Checker.NameExist("biz", form.Name) {
+	if Service.Checker.NameExist("biz", form.Name, nil) {
 		Modules.CallBack.Error(c, 120)
 		return
 	}
@@ -192,7 +192,7 @@ func (*biz) Change(c *gin.Context) {
 		if !Modules.Checker.Name(c, form.Value.(string)) {
 			return
 		}
-		if Service.Checker.NameExist("biz", form.Value.(string)) {
+		if Service.Checker.NameExist("biz", form.Value.(string), nil) {
 			return
 		}
 	case "pic":

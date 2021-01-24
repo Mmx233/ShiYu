@@ -75,6 +75,7 @@ func (*tool) ImgString(c *gin.Context, t string, d interface{}) {
 }
 
 func (*tool) Find(a []uint, b uint) bool { //find b in a
+	//中值法，缺点是无法找出index
 	var c []int
 	d := int(b)
 	for _, v := range a {
@@ -103,4 +104,15 @@ func (*tool) Find(a []uint, b uint) bool { //find b in a
 		}
 	}
 	return false
+}
+
+func (*tool) MakeWhere(where map[string]interface{}) ([]string, []interface{}) {
+	//将数据库轮子中的where映射切分为sql片段
+	var w []string
+	var values []interface{}
+	for k, v := range where {
+		w = append(w, k+"=?")
+		values = append(values, v)
+	}
+	return w, values
 }

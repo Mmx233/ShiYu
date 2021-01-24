@@ -83,7 +83,7 @@ func (*menu) InformationForCat(c *gin.Context) {
 }
 
 func (*menu) InformationForFavorites(c *gin.Context) {
-	data, err := get(c, map[string]interface{}{})
+	data, err := get(c, nil)
 	if err != nil {
 		return
 	}
@@ -126,6 +126,7 @@ func (*menu) New(c *gin.Context) {
 		Modules.CallBack.Error(c, 119)
 		return
 	}
+
 	id, err := Service.Insert(c, "biz_menu", map[string]interface{}{
 		"biz_id":      form.BizId,
 		"name":        form.Name,
@@ -270,8 +271,8 @@ func (*fav) Make(c *gin.Context) {
 	if !Modules.Tool.BindForm(c, &form) {
 		return
 	}
-	if !Service.Checker.MenuExist(form.Id){
-		Modules.CallBack.Error(c,123)
+	if !Service.Checker.MenuExist(form.Id) {
+		Modules.CallBack.Error(c, 123)
 		return
 	}
 	var fav []uint
@@ -307,10 +308,10 @@ func (*fav) Cancel(c *gin.Context) {
 	for i, v := range fav {
 		if v == form.Id {
 			if i == len(fav)-1 {
-				if i!=0 {
+				if i != 0 {
 					fav = fav[:len(fav)-2]
-				}else{
-					fav=make([]uint,0)
+				} else {
+					fav = make([]uint, 0)
 				}
 			} else if i == 0 {
 				fav = fav[1:]

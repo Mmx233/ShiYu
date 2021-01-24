@@ -48,7 +48,7 @@ func (*cat) List(c *gin.Context) {
 		Name string `json:"name"`
 	}
 	data := make([]d, 1)
-	if Service.Get(c, "cat_"+form.Cat, &data, map[string]interface{}{}) != nil {
+	if Service.Get(c, "cat_"+form.Cat, &data, nil) != nil {
 		return
 	}
 	Modules.CallBack.Success(c, data)
@@ -63,6 +63,10 @@ func (*cat) New(c *gin.Context) {
 		return
 	}
 	if !Modules.Checker.Form(c, &form) {
+		return
+	}
+	if Service.Checker.NameExist("cat_"+form.Cat, form.Name, nil) {
+		Modules.CallBack.Error(c, 120)
 		return
 	}
 	id, err := Service.Insert(c, "cat_"+form.Cat, map[string]interface{}{
@@ -90,6 +94,10 @@ func (*cat) Renew(c *gin.Context) {
 	}
 	if !Service.Checker.CatIdExist(form.Cat, form.Id) {
 		Modules.CallBack.Error(c, 119)
+		return
+	}
+	if Service.Checker.NameExist("cat_"+form.Cat, form.Name, nil) {
+		Modules.CallBack.Error(c, 120)
 		return
 	}
 	if _, err := Service.Update(c, "cat_"+form.Cat, map[string]interface{}{
