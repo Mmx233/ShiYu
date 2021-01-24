@@ -10,7 +10,6 @@ import (
 type JwtDATA struct {
 	Role     string
 	Username string
-	Ip       string
 	jwt.StandardClaims
 }
 
@@ -33,11 +32,11 @@ func (j *j) Decode(c *gin.Context, sToken string) (*JwtDATA, error) {
 	claims, ok := jToken.Claims.(*JwtDATA)
 	if err != nil || !ok {
 		CallBack.Error(c, 106)
-		return claims, errors.New("jwt unknown error 1")
+		return claims, err
 	}
-	if !jToken.Valid || claims.Ip != c.ClientIP() {
+	if !jToken.Valid {
 		CallBack.Error(c, 105)
-		return claims, errors.New("jwt unknown error 2")
+		return claims, errors.New("登录过期")
 	}
 	return claims, nil
 }

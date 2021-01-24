@@ -222,8 +222,8 @@ func Get(c *gin.Context, table string, data interface{}, where map[string]interf
 		return err
 	} else {
 		for t := 1; rows.Next(); t++ {
-			e := reflect.ValueOf(data).Elem().Index(0).Interface()
-			_, g, a1, a2 := getKeysAndPointers(&e)
+			e := reflect.New(reflect.ValueOf(data).Elem().Index(0).Type())
+			_, g, a1, a2 := getKeysAndPointers(e.Interface())
 			if err := rows.Scan(g...); err != nil {
 				er(c, err)
 				return err
@@ -233,10 +233,10 @@ func Get(c *gin.Context, table string, data interface{}, where map[string]interf
 				return err
 			}
 
-			if reflect.ValueOf(data).Elem().Len() <= t {
-				reflect.ValueOf(data).Elem().Index(t - 1).Set(reflect.ValueOf(e))
+			if reflect.ValueOf(data).Elem().Len() >= t {
+				reflect.ValueOf(data).Elem().Index(t - 1).Set(e.Elem())
 			} else {
-				reflect.Append(reflect.ValueOf(data).Elem(), reflect.ValueOf(e))
+				reflect.ValueOf(data).Elem().Set(reflect.Append(reflect.ValueOf(data).Elem(), e.Elem()))
 			}
 		}
 	}
