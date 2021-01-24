@@ -25,7 +25,7 @@ type bizData struct {
 	MaxPrice    float32  `json:"max_price"`
 	MinPrice    float32  `json:"min_price"`
 	Address     string   `json:"address"`
-	CatAddress  string   `json:"cat_address"`
+	CatAddressId  uint   `json:"cat_address_id"`
 	Husk        uint32   `json:"husk"`
 	Share       uint32   `json:"share"`
 	Favorite    uint     `json:"favorite"`

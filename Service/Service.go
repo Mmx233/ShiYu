@@ -154,13 +154,8 @@ func getKeysAndPointers(d interface{}) ([]string, []interface{}, []*string, []in
 func turnSliceBack(c *gin.Context, a1 []*string, a2 []interface{}) error {
 	for ii, v := range a1 {
 		var temp interface{}
-		if strings.Contains(*v, "\"") {
-			var c []string
-			temp = &c
-		} else {
-			var c []uint
-			temp = &c
-		}
+		fmt.Println(*v)
+		temp=reflect.New(reflect.TypeOf(a2[ii]).Elem()).Interface()
 		if *v != "" && json.Unmarshal([]byte(*v), temp) != nil {
 			err := errors.New("未知错误-解码失败")
 			er(c, err)
@@ -281,8 +276,7 @@ func GetWithLimit(c *gin.Context, table string, data interface{}, where map[stri
 	for rows.Next() {
 		//取指针
 		var points []interface{}
-		o := reflect.ValueOf(data).Elem().Index(i).Interface()
-		_, points, b1, b2 := getKeysAndPointers(&o)
+		_, points, b1, b2 := getKeysAndPointers(reflect.ValueOf(data).Elem().Index(i).Addr().Interface())
 		a1 = append(a1, b1...)
 		a2 = append(a2, b2...)
 

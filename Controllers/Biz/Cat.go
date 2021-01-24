@@ -24,8 +24,7 @@ func (*cat) ListContent(c *gin.Context) {
 		Modules.CallBack.Error(c, 119)
 		return
 	}
-	var data interface{}
-	data = make([]bizData, form.Limit)
+	data := make([]bizData, form.Limit)
 	if Service.GetWithLimit(c, "biz", &data, map[string]interface{}{
 		"cat_address_id": form.Id,
 	}, int(form.Page)) != nil {
