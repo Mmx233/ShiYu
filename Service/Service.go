@@ -161,7 +161,7 @@ func turnSliceBack(c *gin.Context, a1 []*string, a2 []interface{}) error {
 			var c []uint
 			temp = &c
 		}
-		if *v!="" && json.Unmarshal([]byte(*v), temp) != nil {
+		if *v != "" && json.Unmarshal([]byte(*v), temp) != nil {
 			err := errors.New("未知错误-解码失败")
 			er(c, err)
 			return err
