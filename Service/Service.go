@@ -59,7 +59,13 @@ func Insert(c *gin.Context, table string, value map[string]interface{}) (int64, 
 		//数组字符串化
 		switch reflect.TypeOf(v).Kind() {
 		case reflect.Slice:
-			temp, _ := json.Marshal(v)
+			var temp string
+			if reflect.ValueOf(v).Len() == 0 {
+				temp = ""
+			} else {
+				t, _ := json.Marshal(v)
+				temp = string(t)
+			}
 			//DEMO 应对超长
 			values = append(values, temp)
 		default:
@@ -152,15 +158,18 @@ func getKeysAndPointers(d interface{}) ([]string, []interface{}, []*string, []in
 
 func turnSliceBack(c *gin.Context, a1 []*string, a2 []interface{}) error {
 	for ii, v := range a1 {
-		var temp interface{}
-		fmt.Println(*v)
-		temp = reflect.New(reflect.TypeOf(a2[ii]).Elem()).Interface()
-		if *v != "" && json.Unmarshal([]byte(*v), temp) != nil {
+		temp := reflect.New(reflect.TypeOf(a2[ii]).Elem())
+		if *v != "" && json.Unmarshal([]byte(*v), temp.Interface()) != nil {
 			err := errors.New("未知错误-解码失败")
 			er(c, err)
 			return err
 		}
-		reflect.ValueOf(a2[ii]).Elem().Set(reflect.ValueOf(temp).Elem())
+		if temp.Elem().Len() != 0 {
+			reflect.ValueOf(a2[ii]).Elem().Set(temp.Elem())
+		} else {
+			//论如何空手初始化未知类型切片……
+			reflect.ValueOf(a2[ii]).Elem().Set(reflect.MakeSlice(temp.Elem().Type(), 0, 0))
+		}
 	}
 	return nil
 }
@@ -194,9 +203,13 @@ func Get(c *gin.Context, table string, data interface{}, where map[string]interf
 	var keys []string
 	var values []interface{}
 
+	//初始化data
+	s := reflect.ValueOf(data).Elem()
+	s.Set(reflect.MakeSlice(s.Type(), 1, 1))
+
 	//取字段名
 	{
-		g := reflect.ValueOf(data).Elem().Index(0)
+		g := s.Index(0)
 		keys = getKeys(reflect.TypeOf(g.Interface()))
 	}
 
@@ -207,25 +220,28 @@ func Get(c *gin.Context, table string, data interface{}, where map[string]interf
 	}
 	SQL := fmt.Sprintf("SELECT %s FROM %s %s", strings.Join(keys, ","), table, w)
 	if rows, err := DB.Query(SQL, values...); err != nil {
+		rows.Close()
 		er(c, err)
 		return err
 	} else {
+		defer rows.Close()
 		for t := 1; rows.Next(); t++ {
-			e := reflect.New(reflect.ValueOf(data).Elem().Index(0).Type())
+			e := reflect.New(s.Index(0).Type())
 			_, g, a1, a2 := getKeysAndPointers(e.Interface())
 			if err := rows.Scan(g...); err != nil {
 				er(c, err)
 				return err
 			}
+
 			//数组还原
 			if err := turnSliceBack(c, a1, a2); err != nil {
 				return err
 			}
 
-			if reflect.ValueOf(data).Elem().Len() >= t {
-				reflect.ValueOf(data).Elem().Index(t - 1).Set(e.Elem())
+			if t == 1 {
+				s.Index(t - 1).Set(e.Elem())
 			} else {
-				reflect.ValueOf(data).Elem().Set(reflect.Append(reflect.ValueOf(data).Elem(), e.Elem()))
+				s.Set(reflect.Append(reflect.ValueOf(data).Elem(), e.Elem()))
 			}
 		}
 	}

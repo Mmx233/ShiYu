@@ -22,7 +22,7 @@ func get(c *gin.Context, where map[string]interface{}) (interface{}, error) {
 		CatFoodId  uint   `json:"cat_food_id"`
 		IsFavorite bool   `json:"is_favorite" skip:"true"`
 	}
-	data := make([]d, 1)
+	var data []d
 	if err := Service.Get(c, "biz_menu", &data, where); err != nil {
 		return nil, err
 	}

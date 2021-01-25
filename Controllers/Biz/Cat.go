@@ -47,7 +47,7 @@ func (*cat) List(c *gin.Context) {
 		Id   uint   `json:"id"`
 		Name string `json:"name"`
 	}
-	data := make([]d, 1)
+	var data []d
 	if Service.Get(c, "cat_"+form.Cat, &data, nil) != nil {
 		return
 	}
