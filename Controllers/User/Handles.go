@@ -11,6 +11,8 @@ type user struct{}
 
 var User user
 
+//DEMO 个性签名部分 稻谷计算部分
+
 func (*user) Information(c *gin.Context) {
 	username := c.Param("username")
 	if !Service.Checker.AccountExist("user", username) {

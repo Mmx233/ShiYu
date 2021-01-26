@@ -29,7 +29,6 @@ type bizData struct {
 	Husk         uint32   `json:"husk"`
 	Share        uint32   `json:"share"`
 	Favorite     uint     `json:"favorite"`
-	Dislike      uint     `json:"dislike"`
 }
 
 func (*biz) ListBiz(c *gin.Context) {
@@ -103,7 +102,6 @@ func (*biz) New(c *gin.Context) {
 		"husk":           0,
 		"share":          0,
 		"favorite":       0,
-		"dislike":        0,
 		"cat_address_id": form.CatAddressId,
 	})
 	if err != nil {
@@ -118,7 +116,7 @@ func (*biz) Renew(c *gin.Context) {
 	var form struct {
 		Id           uint     `form:"id" binding:"required"`
 		Name         string   `form:"name" binding:"required"`
-		Pic          []string `form:"pic" binding:"required"`
+		Pic          []string `form:"pic"`
 		Grade        uint     `form:"grade"`
 		GradeWeight  uint     `form:"grade_weight"`
 		Address      string   `form:"address" binding:"required"`
@@ -126,7 +124,6 @@ func (*biz) Renew(c *gin.Context) {
 		Husk         uint     `form:"husk"`
 		Share        uint     `form:"share"`
 		Favorite     uint     `form:"favorite"`
-		Dislike      uint     `form:"dislike"`
 		MaxPrice     uint     `form:"max_price"`
 		MinPrice     uint     `form:"min_price"`
 	}
@@ -159,7 +156,6 @@ func (*biz) Renew(c *gin.Context) {
 		"husk":           form.Husk,
 		"share":          form.Share,
 		"favorite":       form.Favorite,
-		"dislike":        form.Dislike,
 		"cat_address_id": form.CatAddressId,
 	}, map[string]interface{}{
 		"id": form.Id,
@@ -239,8 +235,6 @@ func (*biz) Change(c *gin.Context) {
 	case "share":
 		fallthrough
 	case "favorite":
-		fallthrough
-	case "dislike":
 		if _, ok := form.Value.(uint); !ok {
 			Modules.CallBack.Error(c, 101)
 			return

@@ -20,6 +20,7 @@ func get(c *gin.Context, where map[string]interface{}) (interface{}, error) {
 		Name       string `json:"name"`
 		Price      string `json:"price"`
 		CatFoodId  uint   `json:"cat_food_id"`
+		Favorite   uint `json:"favorite"`
 		IsFavorite bool   `json:"is_favorite" skip:"true"`
 	}
 	var data []d
@@ -148,6 +149,7 @@ func (*menu) Renew(c *gin.Context) {
 		CatFoodId uint    `form:"cat_food_id" binding:"required"`
 		Name      string  `form:"name" binding:"required"`
 		Price     float32 `form:"price" binding:"min=0,max=999"`
+		Favorite  uint    `form:"favorite" binding:"required"`
 	}
 	if !Modules.Tool.BindForm(c, &form) {
 		return
@@ -229,6 +231,11 @@ func (*menu) Change(c *gin.Context) {
 		if !Service.Checker.CatIdExist("food", form.Value.(uint)) {
 			return
 		}
+	case "favorite":
+		if _, ok := form.Value.(uint); !ok {
+			Modules.CallBack.Error(c, 101)
+			return
+		}
 	default:
 		Modules.CallBack.Error(c, 114)
 		return
@@ -289,6 +296,9 @@ func (*fav) Make(c *gin.Context) {
 	}); err != nil {
 		return
 	}
+	if Service.Tool.MenuFavoritePlus(c,form.Id,1)!=nil{
+		return
+	}
 	Modules.CallBack.Default(c)
 }
 
@@ -326,6 +336,9 @@ func (*fav) Cancel(c *gin.Context) {
 	}, map[string]interface{}{
 		"username": c.GetString("username"),
 	}); err != nil {
+		return
+	}
+	if Service.Tool.MenuFavoritePlus(c,form.Id,-1)!=nil{
 		return
 	}
 	Modules.CallBack.Default(c)
