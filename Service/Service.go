@@ -28,13 +28,80 @@ func erCode(c *gin.Context, code int) {
 	}
 }
 
+func databaseConfig()string{
+	formatConfig:= func(data map[string]string) string{
+		return fmt.Sprintf("%v:%v@tcp(%v:%v)/%v",data["username"],data["password"],data["host"],data["port"],data["database"])
+	}
+	if !Modules.File.Exists("config.ini"){
+		//引导链接数据库
+		fmt.Println("[乌拉，没找到配置文件]Mysql链接向导开始")
+		var data = make(map[string]string)
+		var t string
+		var need =[]string{
+			"Host",
+			"Port",
+			"UserName",
+			"Password",
+			"Database",
+		}
+		for i:=0;i<len(need);i++{
+			fmt.Printf(need[i]+":")
+			_, _ = fmt.Scanln(&t)
+			if t == ""{
+				i--
+				continue
+			}
+			data[strings.ToLower(need[i])]=t
+		}
+		file,_:=json.Marshal(data)
+		save:err := Modules.File.Write("config.ini", file)
+		if err==nil{
+			fmt.Println("已保存为【config.ini】")
+		}else{
+			fmt.Println(err)
+			fmt.Println("保存失败，是否重试")
+			for{
+				fmt.Printf("Y/N:")
+				_, _ = fmt.Scanln(&t)
+				t=strings.ToLower(t)
+				if t=="y"{
+					goto save
+				}else if t=="n"{
+					break
+				}
+			}
+		}
+		return formatConfig(data)
+	}
+	givUp:=func()string{//处理err
+		fmt.Println("读取配置文件【config.ini】出错，请重新配置")
+		if Modules.File.Remove("config.ini")!=nil{
+			fmt.Println("无法对【config.ini】操作，请检查文件权限或手动删除")
+			os.Exit(3)
+		}
+		return databaseConfig()
+	}
+	//读取配置
+	file,err:=Modules.File.Read("config.ini")
+	if err!=nil{
+		return givUp()
+	}
+	var data map[string]string
+	err=json.Unmarshal(file,&data)
+	if err!=nil{
+		return givUp()
+	}
+	return formatConfig(data)
+}
+
 func InitDatabase() { //连接数据库
 	var err error
-	if DB, err = sql.Open("mysql", "HackWeek:EfhGjswCa73efjeX@tcp(127.0.0.1:3306)/HackWeek"); err != nil || DB.Ping() != nil {
+	if DB, err = sql.Open("mysql", databaseConfig()); err != nil || DB.Ping() != nil {
 		fmt.Println(DB.Ping())
 		fmt.Println(err)
 		os.Exit(3)
 	}
+	fmt.Println("数据库已连接")
 }
 
 func Exec(sql string, args ...interface{}) (int64, error) {
